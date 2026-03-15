@@ -5,21 +5,21 @@ This file contains the specification for the PENIS.
 This is an application layer protocol, which is intended to run on top of TCP, thus avoiding the complexities of having to implement reliability guarantees. The protocol handles communication between one Lego Mindstorm EV3 robot and the robot controller, which instructs the robot what to do based on camera input and image recognition. Communication is always initiated by the controller, which sends *messages* to the robot, and the robot responds to the messages with [acknowledgements](#acknowledgements).
 
 ## Instructions
-An instruction is a unit of work to be carried out by the robot. It can be one of three types: a [*command*](#commands), a [*sequence*](#sequences) or a [*request*](#requests). A command is an atomic unit of work, for instance moving forward. A sequence is a sequence of instructions that is pre-programmed in the robot. A request is a an instruction that doesn't cause the robot to do any actions but instead returns some data from the robot as JSON. In PENIS, it is possible to send multiple instructions in one message (see [message syntax](#message-syntax)).To distinguish between commands, sequences and requests when transmitting messages from the controller to the robot, each instruction is prefixed:
-- command prefix: `c_ `
-- sequence prefix: `s_ `
-- request prefix: `r_ `
+An instruction is a unit of work to be carried out by the robot. It can be one of three types: a [*command*](#commands), a [*sequence*](#sequences) or a [*request*](#requests). A command is an atomic unit of work, for instance moving forward. A sequence is a sequence of instructions that is pre-programmed in the robot. A request is a an instruction that doesn't cause the robot to do any actions but instead returns some data from the robot as JSON. To distinguish between commands, sequences and requests when transmitting messages from the controller to the robot, each instruction is prefixed:
+- command prefix: `c_`
+- sequence prefix: `s_`
+- request prefix: `r_`
 
 ### Commands
 Commands are atomic units of work to be carried out by the robot. PENIS includes the following commands:
-- forward (`fwd`): instructs the robot to drive forwards according to the given arguments.
-- backward (`bwd`): instructs the robot to drive backwards according to the given arguments.
-- tank left (`tl`): instructs the robot to turn left using tank steering according to the given arguments.
-- tank right (`tr`): instructs the robot to turn right using tank steering according to the given arguments.
-- ball in (`bin`): instructs the robot to turn the ball collecting wheels inwards.
-- ball out (`bout`): instructs the robot to turn the ball collecting wheels outwards.
-- ball off (`boff`): instructs the robot to stop the ball collecting wheels.
-- talk (`t`): instructs the robot to talk according to the given arguments.
+- forward (`fwd`): instructs the robot to drive forwards according to the given arguments. This command accepts the following arguments (others are ignored): 
+- backward (`bwd`): instructs the robot to drive backwards according to the given arguments. This command accepts the following arguments (others are ignored): 
+- tank left (`tl`): instructs the robot to turn left using tank steering according to the given arguments. This command accepts the following arguments (others are ignored): 
+- tank right (`tr`): instructs the robot to turn right using tank steering according to the given arguments. This command accepts the following arguments (others are ignored): 
+- ball in (`bin`): instructs the robot to turn the ball collecting wheels inwards. This command accepts the following arguments (others are ignored): 
+- ball out (`bout`): instructs the robot to turn the ball collecting wheels outwards. This command accepts the following arguments (others are ignored): 
+- ball off (`boff`): instructs the robot to stop the ball collecting wheels. This command accepts the following arguments (others are ignored): 
+- talk (`t`): instructs the robot to talk according to the given arguments. This command accepts the following arguments (others are ignored): 
 
 ### Sequences
 Sequences are pre-programmed sequences of instructions that the robot knows by a sequence name. PENIS includes the following sequences:
@@ -30,30 +30,42 @@ Requests are instructions that query the robot for information without causing i
 
 ### Instruction arguments
 All [instructions](#instructions) accept so-called *arguments* as input. Every instruction accepts ALL arguments that are defined in PENIS; even if an instruction does not use an argument, space is reserved for it in the argument section of the message body. The following arguments are defined in PENIS:
-1. Instruction id (`inst_id`) (unique identifyer for this particular instruction instance).
-2. Right speed percent (`rspeed`): speed of right wheels in percent of maximum possible speed.
-3. Left speed percent (`lspeed`): speed of left wheels in percent of maximum possible speed.
-4. Speed percent (`speed`): speed of both sets of wheels in perceot of maximum possible speed.
-5. Rotations (`rotations`): 
+1. Instruction id (`inst_id`) (unique identifier for this particular instruction instance). This argument is not used but is reserved for future use.
+2. Right speed percent (`rspeed`): speed of right wheels in percent of maximum possible speed. This is an integer in the range [0;100].
+3. Left speed percent (`lspeed`): speed of left wheels in percent of maximum possible speed. This is an integer in the range [0;100].
+4. Speed percent (`speed`): speed of both sets of wheels in percent of maximum possible speed. This is an integer in the range [0;100].
+5. Rotations (`rotations`): rotations per minute of the wheels. This is a non-negative integer.
 6. Position (`position`): 
-7. Seconds (`seconds`): the amount of seconds for which to turn on some motor.
+7. Seconds (`seconds`): the amount of seconds for which to turn on some motor. This is a non-negative integer.
 8. Degrees (`degrees`): 
 9. Brake (`brake`): whether or not to brake after moving (boolean).
-10. Block (`block`): whether or not the command should block, meaning it can not be interrupted by other instructions (boolean).
-11. Talk (`talk`): a message for the robot to say.
+10. Block (`block`): whether or not the instruction should block (boolean). If an instruction is blocking, then other instructions arriving during execution of the blocking instruction will be queued and carried out after execution of the blocking instruction completes. If an instruction is not blocking, then other instructions arriving during execution of the non-blocking instruction will interrupt and begin execution immediately.
+11. Talk (`talk`): a message for the robot to say. This is a string that must match this regex: /^[a-zA-Z0-9\.\,\ ]+$/
+
+It should be noted that there are three semantically overlapping speed arguments. However, commands will either only use one type or define precedence on a per-command basis (see [commands specification](#commands)).
 
 ## Acknowledgements
-Each message sent from the controller to the robot has a corresponding response, which consists of one or more *acknowledgements*. For most instructions, this is a simple positive or negative acknowledgement, but for [requests](#requests) it also includes the requested data. The syntax of a positive acknowledgement is `ACK <inst_id> <data>` where `ACK` is the ASCII acknowledgement character, `<inst_id>` is the unique identifyer of the instruction, and `<data>` is a stringified JSON object. For most instructions, this is just an empty object, but for requests, it contains the requested data. The syntax of a negative acknowledgement is `NAK <inst_id> <data>`, where `NAK` is the ASCII negative acknowledgement character, `<inst_id>` is the unique identifyer of the instruction, and `<data>` is an empty stringified JSON object, which is included to allow data transfer in negative acknowledgements in future versions of PENIS.
+Each message sent from the controller to the robot results in a corresponding acknowledgement being sent from the robot to the controller. The acknowledgement is either positive or negative. A positive acknowledgement has the following syntax:
 
-When the robot receives a message, it parses each instruction. If an instruction is invalid or unknown, a negative acknowledgement for it is returned. Otherwise, the robot carries out the required action and responds with a positive acknowledgement. Thus, acknowledgements are per-instruction and not per-message and allow the controller to know what the robot has done and what it has not yet done.
+`ACK <data>\n`
+
+where `<data>` is a stringified JSON object containing the requests data if the instruction is a request, and otherwise a stringified empty JSON object.
+
+A negative acknowledgement has the following syntax:
+
+`NAK <data>\n`
+
+where `<data>` is a stringified empty JSON object, which is included to allow transmission of key-value data in negative acknowledgements in the future.
+
+Semantically, a negative acknowledgement means that the robot does not understand the instruction, meaning there is likely a syntax error. A positive acknowledgement has the semantic meaning that the robot understands the instruction and will carry out the requested action as soon as possible. Thus, positive acknowledgements might be sent before the action has been carried out by the robot.
 
 ## Message syntax
 A message, which is an instance of communication between from the controller to the robot, has the following syntax:
 
-`<instruction>&...&<instruction>`
+`<instruction>\n`
 
-Each `<instruction>` is a full instruction, including the fully qualified (including prefix) instruction name and the arguments. Multiple instructions are separated by `&`. There is no ampersand after the last instruction in the message. Each `<instruction>` has the following syntax:
+where `<instruction>` is a full instruction, including the fully qualified (including prefix) instruction name and the arguments. An `<instruction>` has the following syntax:
 
-`<inst_name>:<inst_id>;<rspeed>;<lspeed>;<speed>;<rotation>;<position>;<seconds>;<degrees>;<brake>;<block>;<talk>`
+`<inst_name>:<inst_id>;<rspeed>;<lspeed>;<speed>;<rotations>;<position>;<seconds>;<degrees>;<brake>;<block>;<talk>`
 
 The instruction name is separated from the arguments by `:`, and each argument is separated by `;`. There is no semi colon after the last argument to the instruction.
