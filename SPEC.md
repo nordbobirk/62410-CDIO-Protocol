@@ -30,7 +30,7 @@ Requests are instructions that query the robot for information without causing i
 
 ### Instruction arguments
 All [instructions](#instructions) accept so-called *arguments* as input. Every instruction accepts ALL arguments that are defined in PENIS; even if an instruction does not use an argument, space is reserved for it in the argument section of the message body. The following arguments are defined in PENIS:
-1. Instruction id (`inst_id`) (unique identifier for this particular instruction instance). This argument is not used but is reserved for future use.
+1. Instruction id (`inst_id`) (unique identifier for this particular instruction instance). This argument is not used but is reserved for future use, so the controller sends nothing in this argument.
 2. Right speed percent (`rspeed`): speed of right wheels in percent of maximum possible speed. This is an integer in the range [0;100].
 3. Left speed percent (`lspeed`): speed of left wheels in percent of maximum possible speed. This is an integer in the range [0;100].
 4. Speed percent (`speed`): speed of both sets of wheels in percent of maximum possible speed. This is an integer in the range [0;100].
@@ -38,11 +38,13 @@ All [instructions](#instructions) accept so-called *arguments* as input. Every i
 6. Position (`position`): 
 7. Seconds (`seconds`): the amount of seconds for which to turn on some motor. This is a non-negative integer.
 8. Degrees (`degrees`): 
-9. Brake (`brake`): whether or not to brake after moving (boolean).
-10. Block (`block`): whether or not the instruction should block (boolean). If an instruction is blocking, then other instructions arriving during execution of the blocking instruction will be queued and carried out after execution of the blocking instruction completes. If an instruction is not blocking, then other instructions arriving during execution of the non-blocking instruction will interrupt and begin execution immediately.
+9. Brake (`brake`): whether or not to brake after moving (either `true` or `false`).
+10. Block (`block`): whether or not the instruction should block (either `true` or `false`). If an instruction is blocking, then other instructions arriving during execution of the blocking instruction will be queued and carried out after execution of the blocking instruction completes. If an instruction is not blocking, then other instructions arriving during execution of the non-blocking instruction will interrupt and begin execution immediately.
 11. Talk (`talk`): a message for the robot to say. This is a string that must match this regex: /^[a-zA-Z0-9\.\,\ ]+$/
 
 It should be noted that there are three semantically overlapping speed arguments. However, commands will either only use one type or define precedence on a per-command basis (see [commands specification](#commands)).
+
+If a required argument is missing in an instruction or if a required argument is not a valid value, the instruction will be ignored and the robot will emit a negative acknowledgement.
 
 ## Acknowledgements
 Each message sent from the controller to the robot results in a corresponding acknowledgement being sent from the robot to the controller. The acknowledgement is either positive or negative. A positive acknowledgement has the following syntax:
