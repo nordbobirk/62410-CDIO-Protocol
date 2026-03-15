@@ -66,7 +66,7 @@ Commands are atomic units of work to be carried out by the robot. PENIS includes
     - `talk`
 
 #### Note
-The precedence of the arguments with the same usage (mainly rotations, positions, seconds & left, right speed) is equal to the order above
+The precedence of the arguments with the same usage (mainly rotations, positions, seconds & left, right speed) is equal to the order above. For example, if speed is provided, gyro functionality will be used. Otherwise the regular tank turning will be used with the `lspeed` & `rspeed`.
 
 ### Sequences
 Sequences are pre-programmed sequences of instructions that the robot knows by a sequence name. PENIS includes the following sequences:
