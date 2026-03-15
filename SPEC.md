@@ -35,12 +35,14 @@ All [instructions](#instructions) accept so-called *arguments* as input. Every i
 3. Left speed percent (`lspeed`): speed of left wheels in percent of maximum possible speed. This is an integer in the range [0;100].
 4. Speed percent (`speed`): speed of both sets of wheels in percent of maximum possible speed. This is an integer in the range [0;100].
 5. Rotations (`rotations`): rotations per minute of the wheels. This is a non-negative integer.
-6. Position (`position`): 
+6. Position (`position`): in short, position describes the current position of the motor in pulses of the rotary encoder. When the motor rotates clockwise, the position will increase. Likewise, rotating counter-clockwise causes the position to decrease.
 7. Seconds (`seconds`): the amount of seconds for which to turn on some motor. This is a non-negative integer.
-8. Degrees (`degrees`): 
+8. Target angle (`target_angle`): the target angle for a turn. Requires a gyro sensor for measuring the rotation on the plane of rotation of the gyro. This is a signed integer in the range [-360; 360].
 9. Brake (`brake`): whether or not to brake after moving (either `true` or `false`).
 10. Block (`block`): whether or not the instruction should block (either `true` or `false`). If an instruction is blocking, then other instructions arriving during execution of the blocking instruction will be queued and carried out after execution of the blocking instruction completes. If an instruction is not blocking, then other instructions arriving during execution of the non-blocking instruction will interrupt and begin execution immediately.
 11. Talk (`talk`): a message for the robot to say. This is a string that must match this regex: /^[a-zA-Z0-9\.\,\ ]+$/
+
+For more details on certain values like [position], see the official python-ev3dev motor [documentation](https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/ev3dev-stretch/motors.html#units): 
 
 It should be noted that there are three semantically overlapping speed arguments. However, commands will either only use one type or define precedence on a per-command basis (see [commands specification](#commands)).
 
@@ -68,6 +70,6 @@ A message, which is an instance of communication between from the controller to 
 
 where `<instruction>` is a full instruction, including the fully qualified (including prefix) instruction name and the arguments. An `<instruction>` has the following syntax:
 
-`<inst_name>:<inst_id>;<rspeed>;<lspeed>;<speed>;<rotations>;<position>;<seconds>;<degrees>;<brake>;<block>;<talk>`
+`<inst_name>:<inst_id>;<rspeed>;<lspeed>;<speed>;<rotations>;<position>;<seconds>;<target_angle>;<brake>;<block>;<talk>`
 
 The instruction name is separated from the arguments by `:`, and each argument is separated by `;`. There is no semi colon after the last argument to the instruction.
