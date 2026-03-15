@@ -13,13 +13,60 @@ An instruction is a unit of work to be carried out by the robot. It can be one o
 ### Commands
 Commands are atomic units of work to be carried out by the robot. PENIS includes the following commands:
 - forward (`fwd`): instructs the robot to drive forwards according to the given arguments. This command accepts the following arguments (others are ignored): 
+    - `speed`
+        1. `seconds`
+        2. `rotations`
+        3. `position`
+    - `brake`
+    - `block`
 - backward (`bwd`): instructs the robot to drive backwards according to the given arguments. This command accepts the following arguments (others are ignored): 
+    - `speed`
+        1. `seconds`
+        2. `rotations`
+        3. `position`
+    - `brake`
+    - `block`
 - tank left (`tl`): instructs the robot to turn left using tank steering according to the given arguments. This command accepts the following arguments (others are ignored): 
+    - `speed` (for gyro turn)
+    - `lspeed` (for tank turning)
+    - `rspeed` (--||--)
+        1. `target_angle`
+        2. `seconds`
+        3. `rotations`
+        4. `position`
+    - `brake`
+    - `block`
 - tank right (`tr`): instructs the robot to turn right using tank steering according to the given arguments. This command accepts the following arguments (others are ignored): 
+    - `speed` (for gyro turn)
+    - `lspeed` (for tank turning)
+    - `rspeed` (--||--)
+        1. `target_angle`
+        2. `seconds`
+        3. `rotations`
+        4. `position`
+    - `brake`
+    - `block`
 - ball in (`bin`): instructs the robot to turn the ball collecting wheels inwards. This command accepts the following arguments (others are ignored): 
+    - `speed`
+        1. `seconds`
+        2. `rotations`
+    - `brake`
+    - `block`
 - ball out (`bout`): instructs the robot to turn the ball collecting wheels outwards. This command accepts the following arguments (others are ignored): 
+    - `speed`
+        1. `seconds`
+        2. `rotations`
+        3. `position`
+    - `brake`
+    - `block`
 - ball off (`boff`): instructs the robot to stop the ball collecting wheels. This command accepts the following arguments (others are ignored): 
+    - `brake`
+    - `block`
 - talk (`t`): instructs the robot to talk according to the given arguments. This command accepts the following arguments (others are ignored): 
+    - `talk`
+
+#### Note
+The precedence of the arguments with the same usage (mainly rotations, positions, seconds & left, right speed) is equal to the order above
 
 ### Sequences
 Sequences are pre-programmed sequences of instructions that the robot knows by a sequence name. PENIS includes the following sequences:
@@ -42,7 +89,7 @@ All [instructions](#instructions) accept so-called *arguments* as input. Every i
 10. Block (`block`): whether or not the instruction should block (either `true` or `false`). If an instruction is blocking, then other instructions arriving during execution of the blocking instruction will be queued and carried out after execution of the blocking instruction completes. If an instruction is not blocking, then other instructions arriving during execution of the non-blocking instruction will interrupt and begin execution immediately.
 11. Talk (`talk`): a message for the robot to say. This is a string that must match this regex: /^[a-zA-Z0-9\.\,\ ]+$/
 
-For more details on certain values like [position], see the official python-ev3dev motor [documentation](https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/ev3dev-stretch/motors.html#units): 
+For more details on certain values like `position`, see the official python-ev3dev motor [documentation](https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/ev3dev-stretch/motors.html#units): 
 
 It should be noted that there are three semantically overlapping speed arguments. However, commands will either only use one type or define precedence on a per-command basis (see [commands specification](#commands)).
 
