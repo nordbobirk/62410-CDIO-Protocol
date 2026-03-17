@@ -30,7 +30,7 @@ TALK_REGEX = re.compile(r"^[a-zA-Z0-9\.\,\ ]+$")
 
 @dataclass(frozen=True)
 class PENISArguments:
-    inst_id: str = ""         # 0
+    inst_id: int = 0          # 0
     rspeed: int = 0           # 1
     lspeed: int = 0           # 2
     speed: int = 0            # 3
