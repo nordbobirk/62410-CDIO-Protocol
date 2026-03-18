@@ -5,7 +5,7 @@ This file contains the specification for the PENIS.
 This is an application layer protocol, which is intended to run on top of TCP, thus avoiding the complexities of having to implement reliability guarantees. The protocol handles communication between one Lego Mindstorm EV3 robot and the robot controller, which instructs the robot what to do based on camera input and image recognition. Communication is always initiated by the controller, which sends *messages* to the robot, and the robot responds to the messages with [acknowledgements](#acknowledgements).
 
 ## Instructions
-An instruction is a unit of work to be carried out by the robot. It can be one of three types: a [*command*](#commands), a [*sequence*](#sequences) or a [*request*](#requests). A command is an atomic unit of work, for instance moving forward. A sequence is a sequence of instructions that is pre-programmed in the robot. A request is a an instruction that doesn't cause the robot to do any actions but instead returns some data from the robot as JSON. To distinguish between commands, sequences and requests when transmitting messages from the controller to the robot, each instruction is prefixed:
+An instruction is a unit of work to be carried out by the robot. It can be one of three types: a [*command*](#commands), a [*sequence*](#sequences) or a [*request*](#requests). A command is an atomic unit of work, for instance moving forward. A sequence is a sequence of instructions that is pre-programmed in the robot. A request is an instruction that doesn't cause the robot to do any actions but instead returns some data from the robot as JSON. To distinguish between commands, sequences and requests when transmitting messages from the controller to the robot, each instruction is prefixed:
 - command prefix: `c_`
 - sequence prefix: `s_`
 - request prefix: `r_`
@@ -137,7 +137,7 @@ where `<data>` is a stringified empty JSON object, which is included to allow tr
 Semantically, a negative acknowledgement means that the robot does not understand the instruction, meaning there is likely a syntax error. A positive acknowledgement has the semantic meaning that the robot understands the instruction and will carry out the requested action as soon as possible. Thus, positive acknowledgements might be sent before the action has been carried out by the robot.
 
 ## Message syntax
-A message, which is an instance of communication between from the controller to the robot, has the following syntax:
+A message, which is an instance of communication from the controller to the robot, has the following syntax:
 
 `<instruction>\n`
 
@@ -145,4 +145,4 @@ where `<instruction>` is a full instruction, including the fully qualified (incl
 
 `<inst_name>:<inst_id>;<rspeed>;<lspeed>;<speed>;<rotations>;<position>;<seconds>;<target_angle>;<brake>;<block>;<talk>`
 
-The instruction name is separated from the arguments by `:`, and each argument is separated by `;`. There is no semi colon after the last argument to the instruction.
+The instruction name is separated from the arguments by `:`, and each argument is separated by `;`. There is no semicolon after the last argument to the instruction.
