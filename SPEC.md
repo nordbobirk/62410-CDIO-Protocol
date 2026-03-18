@@ -107,7 +107,7 @@ All [instructions](#instructions) accept so-called *arguments* as input. Every i
 2. Right speed percent (`rspeed`): speed of right wheels in percent of maximum possible speed. This is an integer in the range `[-100;100]`. Default: `20`.
 3. Left speed percent (`lspeed`): speed of left wheels in percent of maximum possible speed. This is an integer in the range `[-100;100]`. Default: `20`.
 4. Speed percent (`speed`): speed of both sets of wheels in percent of maximum possible speed. This is an integer in the range `[-100;100]`. Default: `20`.
-5. Rotations (`rotations`): rotations per minute of the wheels. This is a signed integer. Default: `5`.
+5. Rotations (`rotations`): rotations per minute of the wheels. This is a float. Default: `5`.
 6. Position (`position`): in short, position describes the current position of the motor in pulses of the rotary encoder. When the motor rotates clockwise, the position will increase. Likewise, rotating counter-clockwise causes the position to decrease. Default: `10`.
 7. Seconds (`seconds`): the amount of seconds for which to turn on some motor. This is a non-negative integer. Default: `1`.
 8. Target angle (`target_angle`): the target angle for a turn. Requires a gyro sensor for measuring the rotation on the plane of rotation of the gyro. This is a signed integer in the range `[-360; 360]`. Default: `0`.
