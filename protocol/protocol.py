@@ -1,5 +1,5 @@
 """
-PENIS Protocol - Complete implementation with per-command validation
+Implementation of the PENIS
 """
 from dataclasses import dataclass
 from typing import Dict, Any, Literal
@@ -14,140 +14,102 @@ class InstructionType(str, Enum):
     REQUEST = "r_"
 
 class CommandName(str, Enum):
-    FWD = "fwd"
-    BWD = "bwd"
-    TL = "tl"
-    TR = "tr"
-    BIN = "bin"
-    BOUT = "bout"
-    BOFF = "boff"
+    FORWARD = "fwd"
+    BACKWARD = "bwd"
+    TANK_LEFT = "tl"
+    TANK_RIGHT = "tr"
+    BALL_IN = "bin"
+    BALL_OUT = "bout"
+    BALL_OFF = "boff"
     TALK = "t"
 
 class SequenceName(str, Enum):
-    BUST = "bust"
+    EJECT = "bust"
 
-TALK_REGEX = re.compile(r"^[a-zA-Z0-9\.\,\ ]+$")
+TALK_REGEX = re.compile(r"^[a-zA-Z0-9\.\,\ ]*$")
+
+FIELD_ORDER = [
+    "inst_id", "rspeed", "lspeed", "speed", 
+    "rotations", "position", "seconds", "target_angle", 
+    "brake", "block", "talk"
+]
+
+DEFAULTS = {
+    "inst_id": "", "rspeed": 20, "lspeed":20, "speed":20, 
+    "rotations": float(5), "position": 10, "seconds": 1,
+    "target_angle": 0, "brake": True, "block": False, "talk": ""
+}
 
 @dataclass(frozen=True)
-class PENISArguments:
-    inst_id: int = 0          # 0
-    rspeed: int = 0           # 1
-    lspeed: int = 0           # 2
-    speed: int = 0            # 3
-    rotations: int = 0        # 4
-    position: int = 0         # 5
-    seconds: int = 0          # 6
-    target_angle: int = 0     # 7
-    brake: bool = False       # 8
-    block: bool = False       # 9
-    talk: str = ""            # 10
+class Arguments:
+    inst_id: str = DEFAULTS["inst_id"]
+    rspeed: int = DEFAULTS["rspeed"]
+    lspeed: int = DEFAULTS["lspeed"]
+    speed: int = DEFAULTS["speed"]
+    rotations: float = DEFAULTS["rotations"]
+    position: int = DEFAULTS["position"]
+    seconds: int = DEFAULTS["seconds"]
+    target_angle: int = DEFAULTS["target_angle"]
+    brake: bool = DEFAULTS["brake"]
+    block: bool = DEFAULTS["block"]
+    talk: str = DEFAULTS["talk"]
 
-class PENISInstruction(BaseModel):
+class Instruction(BaseModel):
     name: str
-    args: PENISArguments = Field(default_factory=PENISArguments)
+    args: Arguments = Field(default_factory=Arguments)
     
     @validator('name')
     def validate_name(cls, v):
-        if not any(v.startswith(prefix) for prefix in ['c_', 's_', 'r_']):
-            raise ValueError("Name must start with 'c_', 's_', or 'r_'")
-        return v
+        pass
     
     @validator('args')
     def validate_talk(cls, args, values):
-        name = values.get('name')
-        if name and name == 'c_t' and not TALK_REGEX.fullmatch(args.talk):
-            raise ValueError("talk must match /^[a-zA-Z0-9., ]+$/")
-        return args
+        pass
     
     @validator('args')
     def validate_command_args(cls, args, values):
-        name = values.get('name')
-        if not name or not name.startswith('c_'):
-            return args
-        
-        cmd = name[2:]  # Remove "c_" prefix
-        
-        # Helper to get first non-zero extent arg by precedence
-        def get_extent_arg(extents):
-            for extent in extents:
-                if getattr(args, extent) != 0:
-                    return extent
-            return None
-        
-        if cmd == CommandName.FWD:
-            if args.speed == 0:
-                raise ValueError("fwd requires speed > 0")
-            extent = get_extent_arg(['seconds', 'rotations', 'position'])
-            # No validation needed beyond speed > 0
-            
-        elif cmd == CommandName.BWD:
-            if args.speed == 0:
-                raise ValueError("bwd requires speed > 0")
-            extent = get_extent_arg(['seconds', 'rotations', 'position'])
-            
-        elif cmd in (CommandName.TL, CommandName.TR):
-            # speed -> gyro turn, else lspeed/rspeed -> tank turn
-            if args.speed > 0:
-                # Gyro turn mode
-                if get_extent_arg(['target_angle', 'seconds', 'rotations', 'position']) is None:
-                    raise ValueError(f"{cmd}: gyro turn requires target_angle, seconds, rotations, or position")
-            elif args.lspeed > 0 or args.rspeed > 0:
-                # Tank turn mode
-                if get_extent_arg(['seconds', 'rotations', 'position']) is None:
-                    raise ValueError(f"{cmd}: tank turn requires seconds, rotations, or position")
-            else:
-                raise ValueError(f"{cmd}: requires either speed > 0 (gyro) or lspeed/rspeed > 0 (tank)")
-                
-        elif cmd == CommandName.BIN:
-            if args.speed == 0:
-                raise ValueError("bin requires speed > 0")
-            # seconds or rotations optional
-            
-        elif cmd == CommandName.BOUT:
-            if args.speed == 0:
-                raise ValueError("bout requires speed > 0")
-            extent = get_extent_arg(['seconds', 'rotations', 'position'])
-            
-        elif cmd == CommandName.BOFF:
-            pass  # No args required beyond brake/block
-            
-        elif cmd == CommandName.TALK:
-            if not args.talk:
-                raise ValueError("talk requires non-empty talk message")
-            
-        else:
-            raise ValueError(f"Unknown command: {cmd}")
-            
-        return args
+        pass
 
-class PENISMessage(BaseModel):
-    instruction: PENISInstruction
+class Message(BaseModel):
+    instruction: Instruction
 
-class PENISAck(BaseModel):
+class Acknowledgement(BaseModel):
     status: Literal["ACK", "NAK"]
     data: Dict[str, Any] = Field(default_factory=dict)
 
-def serialize_message(instruction: PENISInstruction) -> str:
-    """PENISInstruction → wire format"""
+def serialize_arguments(args: Arguments) -> str:
+    values = [str(getattr(args, field)) for field in FIELD_ORDER[:-1]] + [args.talk]
+    return ";".join(values)
 
-    args = instruction.args
-    args_str = (
-        f"{args.inst_id};"
-        f"{args.rspeed};"
-        f"{args.lspeed};"
-        f"{args.speed};"
-        f"{args.rotations};"
-        f"{args.position};"
-        f"{args.seconds};"
-        f"{args.target_angle};"
-        f"{str(args.brake).lower()};"
-        f"{str(args.block).lower()};"
-        f"{args.talk}"
-    )
-    return f"{instruction.name}:{args_str}\n"
+def serialize_message(instruction: Instruction) -> str:
+    """Serialize a PENIS message"""
 
-def deserialize_message(raw: str) -> PENISMessage:
-    """wire format → PENISMessage (with validation)"""
+    return f"{instruction.name}:{serialize_arguments(instruction.args)}\n"
+
+def parse_arguments(raw_parts: list[str]) -> Arguments:
+    """Parse a serialized PENIS arguments instance"""
+    if len(raw_parts) != 11:
+        raise ValueError(f"Expected 11 arguments, got {len(raw_parts)}")
+    
+    try:
+        return Arguments(
+            inst_id=raw_parts[0] or DEFAULTS["inst_id"],
+            rspeed=int(raw_parts[1] or DEFAULTS["rspeed"]),
+            lspeed=int(raw_parts[2] or DEFAULTS["lspeed"]),
+            speed=int(raw_parts[3] or DEFAULTS["speed"]),
+            rotations=float(raw_parts[4] or DEFAULTS["rotations"]),
+            position=int(raw_parts[5] or DEFAULTS["position"]),
+            seconds=int(raw_parts[6] or DEFAULTS["seconds"]),
+            target_angle=int(raw_parts[7] or DEFAULTS["target_angle"]),
+            brake=raw_parts[8].lower() == 'true' or DEFAULTS["brake"],
+            block=raw_parts[9].lower() == 'true' or DEFAULTS["block"],
+            talk=raw_parts[10] or DEFAULTS["talk"]
+        )
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Failed to parse arguments: {e}")
+
+def parse_message(raw: str) -> Message:
+    """Parse a serialized PENIS message"""
 
     if not raw.endswith('\n'):
         raise ValueError("Message must end with newline")
@@ -159,40 +121,22 @@ def deserialize_message(raw: str) -> PENISMessage:
     name, args_str = line.split(':', 1)
     arg_parts = args_str.split(';')
     
-    if len(arg_parts) != 11:
-        raise ValueError(f"Expected 11 arguments, got {len(arg_parts)}")
+    args = parse_arguments(arg_parts)
     
     try:
-        args = PENISArguments(
-            inst_id=int(arg_parts[0] or 0),
-            rspeed=int(arg_parts[1] or 0),
-            lspeed=int(arg_parts[2] or 0),
-            speed=int(arg_parts[3] or 0),
-            rotations=int(arg_parts[4] or 0),
-            position=int(arg_parts[5] or 0),
-            seconds=int(arg_parts[6] or 0),
-            target_angle=int(arg_parts[7] or 0),
-            brake=arg_parts[8].lower() == 'true',
-            block=arg_parts[9].lower() == 'true',
-            talk=arg_parts[10]
-        )
-    except (ValueError, IndexError) as e:
-        raise ValueError(f"Failed to parse arguments: {e}")
-    
-    try:
-        instruction = PENISInstruction(name=name, args=args)
-        return PENISMessage(instruction=instruction)
+        instruction = Instruction(name=name, args=args)
+        return Message(instruction=instruction)
     except ValidationError as e:
         raise ValueError(f"Validation failed: {e}")
 
-def serialize_ack(status: Literal["ACK", "NAK"], data: Dict[str, Any] = None) -> str:
-    """PENISAck → wire format"""
+def serialize_ack(ack: Acknowledgement) -> str:
+    """Serialize an acknowledgement"""
 
-    data_str = json.dumps(data or {}) 
-    return f"{status} {data_str}\n"
+    data_str = json.dumps(ack.data or {}) 
+    return f"{ack.status} {data_str}\n"
 
-def deserialize_ack(raw: str) -> PENISAck:
-    """wire format → PENISAck"""
+def parse_ack(raw: str) -> Acknowledgement:
+    """Parse a serialized acknowledgement"""
 
     if not raw.endswith('\n'):
         raise ValueError("ACK must end with newline")
@@ -210,4 +154,4 @@ def deserialize_ack(raw: str) -> PENISAck:
         except json.JSONDecodeError:
             raise ValueError("Invalid JSON in ACK data")
     
-    return PENISAck(status=status, data=data)
+    return Acknowledgement(status=status, data=data)
