@@ -14,6 +14,7 @@ An instruction is a unit of work to be carried out by the robot. It can be one o
 Commands are atomic units of work to be carried out by the robot. PENIS includes the following commands:
 - forward (`fwd`): instructs the robot to drive forwards according to the given arguments. This command accepts the following arguments (others are ignored): 
     - `speed`
+    - A form of duration of activation:
         1. `seconds`
         2. `rotations`
         3. `position`
@@ -21,39 +22,60 @@ Commands are atomic units of work to be carried out by the robot. PENIS includes
     - `block`
 - backward (`bwd`): instructs the robot to drive backwards according to the given arguments. This command accepts the following arguments (others are ignored): 
     - `speed`
+    - A form of duration of activation:
         1. `seconds`
         2. `rotations`
         3. `position`
     - `brake`
     - `block`
 - tank left (`tl`): instructs the robot to turn left using tank steering according to the given arguments. This command accepts the following arguments (others are ignored): 
-    - `speed` (for gyro turn)
-    - `lspeed` (for tank turning)
-    - `rspeed` (--||--)
-        1. `target_angle`
-        2. `seconds`
-        3. `rotations`
-        4. `position`
+    Gyro turn
+    - `speed` 
+    - `target_angle`
+
+    OR
+
+    Tank turn
+    - `lspeed`
+    - `rspeed`
+    - A form of duration of activation:
+        1. `seconds`
+        2. `rotations`
+        3. `position`
+
+    AND
+
     - `brake`
     - `block`
 - tank right (`tr`): instructs the robot to turn right using tank steering according to the given arguments. This command accepts the following arguments (others are ignored): 
-    - `speed` (for gyro turn)
-    - `lspeed` (for tank turning)
-    - `rspeed` (--||--)
-        1. `target_angle`
-        2. `seconds`
-        3. `rotations`
-        4. `position`
+    Gyro turn
+    - `speed` 
+    - `target_angle`
+
+    OR
+
+    Tank turn
+    - `lspeed`
+    - `rspeed`
+    - A form of duration of activation:
+        1. `seconds`
+        2. `rotations`
+        3. `position`
+
+    AND
+
     - `brake`
     - `block`
 - ball in (`bin`): instructs the robot to turn the ball collecting wheels inwards. This command accepts the following arguments (others are ignored): 
     - `speed`
+    - A form of duration of activation:
         1. `seconds`
         2. `rotations`
     - `brake`
     - `block`
 - ball out (`bout`): instructs the robot to turn the ball collecting wheels outwards. This command accepts the following arguments (others are ignored): 
     - `speed`
+    - A form of duration of activation:
         1. `seconds`
         2. `rotations`
         3. `position`
