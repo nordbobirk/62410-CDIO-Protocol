@@ -6,7 +6,6 @@ from typing import Dict, Any, Literal
 from enum import Enum
 import re
 import json
-from pydantic import BaseModel, Field, validator, ValidationError
 
 class InstructionType(str, Enum):
     COMMAND = "c_"
@@ -59,25 +58,15 @@ class Instruction:
     name: str
     type: InstructionType
     args: Arguments = field(default_factory=Arguments)
-    
-    @validator('name')
-    def validate_name(cls, v):
-        pass
-    
-    @validator('args')
-    def validate_talk(cls, args, values):
-        pass
-    
-    @validator('args')
-    def validate_command_args(cls, args, values):
-        pass
 
-class Message(BaseModel):
+@dataclass(frozen=True)
+class Message:
     instruction: Instruction
 
-class Acknowledgement(BaseModel):
+@dataclass(frozen=True)
+class Acknowledgement:
     status: Literal["ACK", "NAK"]
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: Dict[str, Any] = field(default_factory=dict)
 
 def serialize_arguments(args: Arguments) -> str:
     """Serialize a PENIS arguments instance"""
