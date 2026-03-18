@@ -54,9 +54,10 @@ class Arguments:
     block: bool = field(default_factory=lambda: DEFAULTS["block"])
     talk: str = field(default_factory=lambda: DEFAULTS["talk"])
 
-class Instruction(BaseModel):
+@dataclass(frozen=True)
+class Instruction:
     name: str
-    args: Arguments = Field(default_factory=Arguments)
+    args: Arguments = field(default_factory=Arguments)
     
     @validator('name')
     def validate_name(cls, v):
