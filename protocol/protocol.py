@@ -57,6 +57,7 @@ class Arguments:
 @dataclass(frozen=True)
 class Instruction:
     name: str
+    type: InstructionType
     args: Arguments = field(default_factory=Arguments)
     
     @validator('name')
@@ -79,13 +80,14 @@ class Acknowledgement(BaseModel):
     data: Dict[str, Any] = Field(default_factory=dict)
 
 def serialize_arguments(args: Arguments) -> str:
+    """Serialize a PENIS arguments instance"""
     values = [str(getattr(args, field)) for field in FIELD_ORDER[:-1]] + [args.talk]
     return ";".join(values)
 
-def serialize_message(instruction: Instruction) -> str:
+def serialize_message(message: Message) -> str:
     """Serialize a PENIS message"""
-
-    return f"{instruction.name}:{serialize_arguments(instruction.args)}\n"
+    instruction = message.instruction
+    return f"{instruction.type.value}{instruction.name.value}:{serialize_arguments(instruction.args)}\n"
 
 def parse_arguments(raw_parts: list[str]) -> Arguments:
     """Parse a serialized PENIS arguments instance"""
@@ -102,8 +104,8 @@ def parse_arguments(raw_parts: list[str]) -> Arguments:
             position=int(raw_parts[5] or DEFAULTS["position"]),
             seconds=int(raw_parts[6] or DEFAULTS["seconds"]),
             target_angle=int(raw_parts[7] or DEFAULTS["target_angle"]),
-            brake=raw_parts[8].lower() == 'true' or DEFAULTS["brake"],
-            block=raw_parts[9].lower() == 'true' or DEFAULTS["block"],
+            brake=raw_parts[8] == 'True' or DEFAULTS["brake"],
+            block=raw_parts[9] == 'True' or DEFAULTS["block"],
             talk=raw_parts[10] or DEFAULTS["talk"]
         )
     except (ValueError, IndexError) as e:
@@ -111,7 +113,6 @@ def parse_arguments(raw_parts: list[str]) -> Arguments:
 
 def parse_message(raw: str) -> Message:
     """Parse a serialized PENIS message"""
-
     if not raw.endswith('\n'):
         raise ValueError("Message must end with newline")
     
@@ -119,16 +120,17 @@ def parse_message(raw: str) -> Message:
     if ':' not in line:
         raise ValueError("Missing ':' after instruction name")
     
-    name, args_str = line.split(':', 1)
+    type_name, args_str = line.split(':', 1)
     arg_parts = args_str.split(';')
+    
+    prefix = type_name[:2]
+    name = type_name[2:]
     
     args = parse_arguments(arg_parts)
     
-    try:
-        instruction = Instruction(name=name, args=args)
-        return Message(instruction=instruction)
-    except ValidationError as e:
-        raise ValueError(f"Validation failed: {e}")
+    instruction_type = next(t for t in InstructionType if t.value == prefix)
+    instruction = Instruction(name=name, type=instruction_type, args=args)
+    return Message(instruction=instruction)
 
 def serialize_ack(ack: Acknowledgement) -> str:
     """Serialize an acknowledgement"""

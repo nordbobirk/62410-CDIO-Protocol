@@ -1,3 +1,16 @@
 from .protocol import *
-__all__ = ['PENISInstruction', 'PENISArguments', 'serialize_message', 'deserialize_message', 
-           'serialize_ack', 'deserialize_ack', 'CommandName']
+__all__ = [
+    'InstructionType',
+    'CommandName',
+    'SequenceName',
+    'Arguments',
+    'Instruction',
+    'Message',
+    'Acknowledgement',
+    'serialize_arguments',
+    'serialize_message',
+    'parse_arguments',
+    'parse_message',
+    'serialize_ack',
+    'parse_ack',
+]
