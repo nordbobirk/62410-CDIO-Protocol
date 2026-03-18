@@ -4,3 +4,5 @@ PENIS is a networking protocol designed for communication between a wheeled ball
 ### Specification
 For the protocol specification see `SPEC.md`.
 
+### Implementation
+For the implementation of the protocol see `protocol/`.
