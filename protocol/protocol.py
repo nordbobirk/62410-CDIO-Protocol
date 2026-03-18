@@ -1,7 +1,7 @@
 """
 Implementation of the PENIS
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Any, Literal
 from enum import Enum
 import re
@@ -42,17 +42,17 @@ DEFAULTS = {
 
 @dataclass(frozen=True)
 class Arguments:
-    inst_id: str = DEFAULTS["inst_id"]
-    rspeed: int = DEFAULTS["rspeed"]
-    lspeed: int = DEFAULTS["lspeed"]
-    speed: int = DEFAULTS["speed"]
-    rotations: float = DEFAULTS["rotations"]
-    position: int = DEFAULTS["position"]
-    seconds: int = DEFAULTS["seconds"]
-    target_angle: int = DEFAULTS["target_angle"]
-    brake: bool = DEFAULTS["brake"]
-    block: bool = DEFAULTS["block"]
-    talk: str = DEFAULTS["talk"]
+    inst_id: str = field(default_factory=lambda: DEFAULTS["inst_id"])
+    rspeed: int = field(default_factory=lambda: DEFAULTS["rspeed"])
+    lspeed: int = field(default_factory=lambda: DEFAULTS["lspeed"])
+    speed: int = field(default_factory=lambda: DEFAULTS["speed"])
+    rotations: float = field(default_factory=lambda: DEFAULTS["rotations"])
+    position: int = field(default_factory=lambda: DEFAULTS["position"])
+    seconds: int = field(default_factory=lambda: DEFAULTS["seconds"])
+    target_angle: int = field(default_factory=lambda: DEFAULTS["target_angle"])
+    brake: bool = field(default_factory=lambda: DEFAULTS["brake"])
+    block: bool = field(default_factory=lambda: DEFAULTS["block"])
+    talk: str = field(default_factory=lambda: DEFAULTS["talk"])
 
 class Instruction(BaseModel):
     name: str
