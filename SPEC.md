@@ -29,6 +29,7 @@ Commands are atomic units of work to be carried out by the robot. PENIS includes
     - `brake`
     - `block`
 - tank left (`tl`): instructs the robot to turn left using tank steering according to the given arguments. This command accepts the following arguments (others are ignored): 
+
     Gyro turn
     - `speed` 
     - `target_angle`
@@ -48,6 +49,7 @@ Commands are atomic units of work to be carried out by the robot. PENIS includes
     - `brake`
     - `block`
 - tank right (`tr`): instructs the robot to turn right using tank steering according to the given arguments. This command accepts the following arguments (others are ignored): 
+
     Gyro turn
     - `speed` 
     - `target_angle`
