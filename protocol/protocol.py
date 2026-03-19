@@ -117,7 +117,8 @@ class Acknowledgement(object):
 
 def serialize_arguments(args):
     """Serialize a PENIS arguments instance"""
-    values = [str(getattr(args, field)) for field in FIELD_ORDER[:-1]] + [args.talk]
+    # Default is "", when that arg isnt provided
+    values = [str(getattr(args, field, "")) for field in FIELD_ORDER[:-1]] + [args.talk]
     return ";".join(values)
 
 
