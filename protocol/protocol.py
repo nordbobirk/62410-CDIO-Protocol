@@ -126,8 +126,8 @@ def serialize_message(message):
     """Serialize a PENIS message"""
     instruction = message.instruction
     return "{}{}:{}\n".format(
-        instruction.type.value,
-        instruction.name.value,
+        instruction.type,
+        instruction.name,
         serialize_arguments(instruction.args)
     )
 
