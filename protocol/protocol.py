@@ -1,5 +1,5 @@
 """
-Implementation of the PENIS protocol (Python 3.5 compatible)
+Implementation of the PENIS (python 3.5 compatible)
 """
 from enum import Enum
 import re
@@ -45,8 +45,6 @@ DEFAULTS = {
 
 
 class Arguments(object):
-    """Named tuple replacement for Python 3.5"""
-    
     def __init__(self, inst_id=None, rspeed=None, lspeed=None, speed=None,
                  rotations=None, position=None, seconds=None, target_angle=None,
                  brake=None, block=None, talk=None):
@@ -61,21 +59,6 @@ class Arguments(object):
         self.brake = bool(brake) if brake is not None else DEFAULTS["brake"]
         self.block = bool(block) if block is not None else DEFAULTS["block"]
         self.talk = talk or DEFAULTS["talk"]
-    
-    def __eq__(self, other):
-        if not isinstance(other, Arguments):
-            return False
-        return (self.inst_id == other.inst_id and
-                self.rspeed == other.rspeed and
-                self.lspeed == other.lspeed and
-                self.speed == other.speed and
-                self.rotations == other.rotations and
-                self.position == other.position and
-                self.seconds == other.seconds and
-                self.target_angle == other.target_angle and
-                self.brake == other.brake and
-                self.block == other.block and
-                self.talk == other.talk)
 
 
 class Instruction(object):
@@ -83,23 +66,11 @@ class Instruction(object):
         self.name = name
         self.type = type_
         self.args = args or Arguments()
-    
-    def __eq__(self, other):
-        if not isinstance(other, Instruction):
-            return False
-        return (self.name == other.name and
-                self.type == other.type and
-                self.args == other.args)
 
 
 class Message(object):
     def __init__(self, instruction):
         self.instruction = instruction
-    
-    def __eq__(self, other):
-        if not isinstance(other, Message):
-            return False
-        return self.instruction == other.instruction
 
 
 class Acknowledgement(object):
@@ -108,11 +79,6 @@ class Acknowledgement(object):
             raise ValueError("Status must be 'ACK' or 'NAK'")
         self.status = status
         self.data = data or {}
-    
-    def __eq__(self, other):
-        if not isinstance(other, Acknowledgement):
-            return False
-        return self.status == other.status and self.data == other.data
 
 
 def serialize_arguments(args):
