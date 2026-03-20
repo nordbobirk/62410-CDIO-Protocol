@@ -34,7 +34,7 @@ class TestPENISProtocol(unittest.TestCase):
         self.assertEqual(serialized, ";20;20;20;5.0;10;1;0;True;False;")
 
         custom_arguments = Arguments(
-            inst_id="inst_id",
+            inst_id="",
             rspeed=0,
             lspeed=0,
             speed=0,
@@ -48,7 +48,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         custom_serialized = serialize_arguments(custom_arguments)
         self.assertEqual(custom_arguments.rspeed, 0)
-        self.assertEqual(custom_serialized, "inst_id;0;0;0;0.0;0;0;360;False;True;yeet")
+        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0;360;False;True;yeet")
 
     def test_serialize_message(self):
         message = Message(instruction = Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()))
@@ -82,7 +82,7 @@ class TestPENISProtocol(unittest.TestCase):
         self.assert_default_arguments(arguments)
 
         custom_arguments = Arguments(
-            inst_id="inst_id",
+            inst_id="",
             rspeed=0,
             lspeed=0,
             speed=0,
@@ -96,7 +96,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         custom_serialized = serialize_arguments(custom_arguments)
         self.assertEqual(custom_arguments.rspeed, 0)
-        self.assertEqual(custom_serialized, "inst_id;0;0;0;0.0;0;0;360;False;True;yeet")
+        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0;360;False;True;yeet")
     
     def test_parse_message(self):
         serialized_message = "c_fwd:;20;20;20;5.0;10;1;0;True;False;\n"
@@ -280,7 +280,92 @@ class TestPENISProtocol(unittest.TestCase):
 
     # region validation
 
+    def test_argument_validation(self):
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(inst_id = "not empty")
+        self.assertTrue("Instruction id is currently reserved and must be an empty string" in str(ctx.exception))
+        Arguments(inst_id = "") # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(rspeed = -101)
+        self.assertTrue("Right speed must be within [-100;100], received -101" in str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(rspeed = 101)
+        self.assertTrue("Right speed must be within [-100;100], received 101" in str(ctx.exception))
+        Arguments(rspeed = 0) # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(lspeed = -101)
+        self.assertTrue("Left speed must be within [-100;100], received -101" in str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(lspeed = 101)
+        self.assertTrue("Left speed must be within [-100;100], received 101" in str(ctx.exception))
+        Arguments(lspeed = 0) # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(speed = -101)
+        self.assertTrue("Speed must be within [-100;100], received -101" in str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(speed = 101)
+        self.assertTrue("Speed must be within [-100;100], received 101" in str(ctx.exception))
+        Arguments(speed = 0) # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(seconds = -1)
+        self.assertTrue("Seconds must be a non-negative integer, received -1" in str(ctx.exception))
+        Arguments(seconds = 0) # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(target_angle = -361)
+        self.assertTrue("Target angle must be within [-360;360], received -361" in str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(target_angle = 361)
+        self.assertTrue("Target angle must be within [-360;360], received 361" in str(ctx.exception))
+        Arguments(target_angle = 0) # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(talk = ":")
+        self.assertTrue("Talk must only include alphanumeric characters as well as the dot, comma, and space characters." in str(ctx.exception))
+        Arguments(talk = "talk") # happy path
     
+    def test_instruction_validation(self):
+        with self.assertRaises(ValueError) as ctx:
+            Instruction(name = CommandName.FORWARD, type = "unknown-type", args = Arguments())
+        self.assertTrue("Unknown instruction type unknown-type" in str(ctx.exception))
+        Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()) # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Instruction(name = "unknown-command", type = InstructionType.COMMAND, args = Arguments())
+        self.assertTrue("Unknown command name unknown-command" in str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            Instruction(name = SequenceName.EJECT, type = InstructionType.COMMAND, args = Arguments())
+        self.assertTrue("Unknown command name bust" in str(ctx.exception))
+        Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()) # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Instruction(name = "unknown-sequence", type = InstructionType.SEQUENCE, args = Arguments())
+        self.assertTrue("Unknown sequence name unknown-sequence" in str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            Instruction(name = CommandName.FORWARD, type = InstructionType.SEQUENCE, args = Arguments())
+        self.assertTrue("Unknown sequence name fwd" in str(ctx.exception))
+        Instruction(name = SequenceName.EJECT, type = InstructionType.SEQUENCE, args = Arguments()) # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Instruction(name = "not-a-request", type = InstructionType.REQUEST, args = Arguments())
+        self.assertTrue("Unknown request name not-a-request, missing prefix." in str(ctx.exception))
+        Instruction(name = "ev3_attribute", type = InstructionType.REQUEST, args = Arguments()) # happy path
+    
+    def test_acknowledgement_validation(self):
+        with self.assertRaises(ValueError) as ctx:
+            Acknowledgement(status = "not-a-status")
+        self.assertTrue("Unknown status not-a-status, expect 'ACK' or 'NAK'." in str(ctx.exception))
+        Acknowledgement(status = "ACK") # happy path
+        Acknowledgement(status = "NAK") # happy path
+
+        with self.assertRaises(ValueError) as ctx:
+            Acknowledgement("ACK", Arguments())
+        self.assertTrue("Data must be valid JSON." in str(ctx.exception))
+        Acknowledgement(status = "ACK", data = { "key": "value" }) # happy path
 
     # endregion validation
 

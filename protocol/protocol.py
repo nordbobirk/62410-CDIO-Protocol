@@ -55,7 +55,20 @@ class Arguments(object):
         self.assert_valid()
 
     def assert_valid(self):
-        pass
+        if self.inst_id != "":
+            raise ValueError("Instruction id is currently reserved and must be an empty string.")
+        if self.rspeed > 100 or self.rspeed < -100:
+            raise ValueError("Right speed must be within [-100;100], received {}.".format(self.rspeed))
+        if self.lspeed > 100 or self.lspeed < -100:
+            raise ValueError("Left speed must be within [-100;100], received {}.".format(self.lspeed))
+        if self.speed > 100 or self.speed < -100:
+            raise ValueError("Speed must be within [-100;100], received {}.".format(self.speed))
+        if self.seconds < 0:
+            raise ValueError("Seconds must be a non-negative integer, received {}".format(self.seconds))
+        if self.target_angle > 360 or self.target_angle < -360:
+            raise ValueError("Target angle must be within [-360;360], received {}".format(self.target_angle))
+        if TALK_REGEX.search(self.talk) == None and self.talk != "":
+            raise ValueError("Talk must only include alphanumeric characters as well as the dot, comma, and space characters.")
 
 class Instruction(object):
     def __init__(self, name, type, args=None):
@@ -65,15 +78,21 @@ class Instruction(object):
         self.assert_valid()
 
     def assert_valid(self):
-        pass
+        if self.type not in InstructionType and not isinstance(self.type, InstructionType):
+            raise ValueError("Unknown instruction type {}.".format(self.type))
+        if self.type == InstructionType.COMMAND.value:
+            if self.name not in CommandName:
+                raise ValueError("Unknown command name {}.".format(self.name))
+        if self.type == InstructionType.SEQUENCE.value:
+            if self.name not in SequenceName:
+                raise ValueError("Unknown sequence name {}.".format(self.name))
+        if self.type == InstructionType.REQUEST.value:
+            if "ev3_" not in self.name:
+                raise ValueError("Unknown request name {}, missing prefix.".format(self.name))
 
 class Message(object):
     def __init__(self, instruction):
         self.instruction = instruction
-        self.assert_valid()
-
-    def assert_valid(self):
-        pass
 
 class Acknowledgement(object):
     def __init__(self, status, data = None):
