@@ -6,7 +6,7 @@ import unittest
 from protocol import (
     CommandName, Instruction, Arguments, InstructionType,
     serialize_message, parse_message, serialize_arguments,
-    Message
+    Message, Acknowledgement, serialize_ack
 )
 
 class TestPENISProtocol(unittest.TestCase):
@@ -40,6 +40,23 @@ class TestPENISProtocol(unittest.TestCase):
         serialized = serialize_message(message)
         self.assertEqual(serialized, "c_fwd:;20;20;20;5.0;10;1;0;True;False;\n")
 
+    def test_serialize_ack(self):
+        ack = Acknowledgement("ACK", { "key": "value" })
+        serialized_ack = serialize_ack(ack)
+        self.assertEqual(serialized_ack, "ACK {\"key\": \"value\"}\n")
+
+        nak = Acknowledgement("NAK", { "key": "value"} )
+        serialized_nak = serialize_ack(nak)
+        self.assertEqual(serialized_nak, "NAK {\"key\": \"value\"}\n")
+
+        ack_no_data = Acknowledgement("ACK")
+        serialized_ack_no_data = serialize_ack(ack_no_data)
+        self.assertEqual(serialized_ack_no_data, "ACK {}\n")
+
+        nak_no_data = Acknowledgement("NAK")
+        serialized_nak_no_data = serialize_ack(nak_no_data)
+        self.assertEqual(serialized_nak_no_data, "NAK {}\n")
+
     # endregion serialization
 
     # region parsing
@@ -64,6 +81,10 @@ class TestPENISProtocol(unittest.TestCase):
         self.assertEqual(roundtrip.instruction.type, InstructionType.COMMAND.value)
 
     # endregion roundtrip
+
+    # region validation
+
+    # endregion validation
 
 if __name__ == '__main__':
     unittest.main()

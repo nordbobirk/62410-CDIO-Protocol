@@ -52,26 +52,42 @@ class Arguments(object):
         self.brake = bool(brake) if brake is not None else DEFAULTS["brake"]
         self.block = bool(block) if block is not None else DEFAULTS["block"]
         self.talk = talk or DEFAULTS["talk"]
+        self.assert_valid()
+
+    def assert_valid(self):
+        pass
 
 class Instruction(object):
     def __init__(self, name, type, args=None):
         self.name = name.value if isinstance(name, CommandName) else name
         self.type = type.value if isinstance(type, InstructionType) else type
         self.args = args or Arguments()
+        self.assert_valid()
+
+    def assert_valid(self):
+        pass
 
 class Message(object):
     def __init__(self, instruction):
         self.instruction = instruction
+        self.assert_valid()
+
+    def assert_valid(self):
+        pass
 
 class Acknowledgement(object):
-    def __init__(self, status, data=None):
-        self.validate_status(status)
+    def __init__(self, status, data = None):
         self.status = status
         self.data = data or {}
+        self.assert_valid()
 
-    def validate_status(self, status):
-        if status not in ("ACK", "NAK"):
-            raise ValueError("Unknown status {}, expect 'ACK' or 'NAK'.".format(status))
+    def assert_valid(self):
+        if self.status not in ("ACK", "NAK"):
+            raise ValueError("Unknown status {}, expect 'ACK' or 'NAK'.".format(self.status))
+        try:
+            json.dumps(self.data)
+        except:
+            raise ValueError("Data must be valid JSON.")
 
 def serialize_arguments(args):
     """Serialize a PENIS arguments instance"""
@@ -93,18 +109,19 @@ def parse_arguments(raw_parts):
         raise ValueError("Expected 11 arguments, got {}".format(len(raw_parts)))
     
     try:
+        # defaults handled by Arguments.__init__
         return Arguments(
-            inst_id=raw_parts[0] or DEFAULTS["inst_id"],
-            rspeed=raw_parts[1] or DEFAULTS["rspeed"],
-            lspeed=raw_parts[2] or DEFAULTS["lspeed"],
-            speed=raw_parts[3] or DEFAULTS["speed"],
-            rotations=raw_parts[4] or DEFAULTS["rotations"],
-            position=raw_parts[5] or DEFAULTS["position"],
-            seconds=raw_parts[6] or DEFAULTS["seconds"],
-            target_angle=raw_parts[7] or DEFAULTS["target_angle"],
-            brake=raw_parts[8] == 'True' if raw_parts[8] else DEFAULTS["brake"],
-            block=raw_parts[9] == 'True' if raw_parts[9] else DEFAULTS["block"],
-            talk=raw_parts[10] or DEFAULTS["talk"]
+            inst_id=raw_parts[0],
+            rspeed=raw_parts[1],
+            lspeed=raw_parts[2],
+            speed=raw_parts[3],
+            rotations=raw_parts[4],
+            position=raw_parts[5],
+            seconds=raw_parts[6],
+            target_angle=raw_parts[7],
+            brake=raw_parts[8] == 'True' if raw_parts[8] else None, # if argument not given, set None - allows Arguments.__init__ to handle default value
+            block=raw_parts[9] == 'True' if raw_parts[9] else None, # if argument not given, set None - allows Arguments.__init__ to handle default value
+            talk=raw_parts[10],
         )
     except (ValueError, IndexError) as e:
         raise ValueError("Failed to parse arguments: {}".format(e))
@@ -127,8 +144,8 @@ def parse_message(raw):
     args = parse_arguments(arg_parts)
     
     instruction_type = next(t for t in InstructionType if t.value == prefix)
-    instruction = Instruction(name=name, type=instruction_type, args=args)
-    return Message(instruction=instruction)
+    instruction = Instruction(name = name, type = instruction_type, args = args)
+    return Message(instruction = instruction)
 
 def serialize_ack(ack):
     """Serialize an acknowledgement"""
