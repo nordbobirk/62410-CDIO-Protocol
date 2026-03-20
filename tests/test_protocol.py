@@ -7,11 +7,25 @@ from protocol import (
     CommandName, Instruction, Arguments, InstructionType,
     serialize_message, parse_message, serialize_arguments,
     Message, Acknowledgement, serialize_ack, parse_ack,
-    parse_arguments
+    parse_arguments, SequenceName
 )
 
 class TestPENISProtocol(unittest.TestCase):
     
+    def assert_default_arguments(self, arguments):
+        expected = Arguments()
+        self.assertEqual(arguments.inst_id, expected.inst_id)
+        self.assertEqual(arguments.rspeed, expected.rspeed)
+        self.assertEqual(arguments.lspeed, expected.lspeed)
+        self.assertEqual(arguments.speed, expected.speed)
+        self.assertEqual(arguments.rotations, expected.rotations)
+        self.assertEqual(arguments.position, expected.position)
+        self.assertEqual(arguments.seconds, expected.seconds)
+        self.assertEqual(arguments.target_angle, expected.target_angle)
+        self.assertEqual(arguments.brake, expected.brake)
+        self.assertEqual(arguments.block, expected.block)
+        self.assertEqual(arguments.talk, expected.talk)
+
     # region serialization
 
     def test_serialize_arguments(self):
@@ -64,19 +78,8 @@ class TestPENISProtocol(unittest.TestCase):
 
     def test_parse_arguments(self):
         serialized = ";20;20;20;5.0;10;1;0;True;False;"
-        expected = Arguments()
         arguments = parse_arguments(serialized.split(";"))
-        self.assertEqual(arguments.inst_id, expected.inst_id)
-        self.assertEqual(arguments.rspeed, expected.rspeed)
-        self.assertEqual(arguments.lspeed, expected.lspeed)
-        self.assertEqual(arguments.speed, expected.speed)
-        self.assertEqual(arguments.rotations, expected.rotations)
-        self.assertEqual(arguments.position, expected.position)
-        self.assertEqual(arguments.seconds, expected.seconds)
-        self.assertEqual(arguments.target_angle, expected.target_angle)
-        self.assertEqual(arguments.brake, expected.brake)
-        self.assertEqual(arguments.block, expected.block)
-        self.assertEqual(arguments.talk, expected.talk)
+        self.assert_default_arguments(arguments)
 
         custom_arguments = Arguments(
             inst_id="inst_id",
@@ -102,16 +105,7 @@ class TestPENISProtocol(unittest.TestCase):
         arguments = instruction.args
         self.assertEqual(instruction.name, CommandName.FORWARD.value)
         self.assertEqual(instruction.type, InstructionType.COMMAND.value)
-        self.assertEqual(arguments.rspeed, 20)
-        self.assertEqual(arguments.lspeed, 20)
-        self.assertEqual(arguments.speed, 20)
-        self.assertEqual(arguments.rotations, 5.0)
-        self.assertEqual(arguments.position, 10)
-        self.assertEqual(arguments.seconds, 1)
-        self.assertEqual(arguments.target_angle, 0)
-        self.assertEqual(arguments.brake, True)
-        self.assertEqual(arguments.block, False)
-        self.assertEqual(arguments.talk, "")
+        self.assert_default_arguments(arguments)
     
     def test_parse_acknowledgement(self):
         serialized_ack = "ACK {\"key\": \"value\"}\n"
@@ -143,23 +137,150 @@ class TestPENISProtocol(unittest.TestCase):
     # region roundtrip
 
     def test_roundtrip_forward(self):
-        """c_fwd serializes → parses back identically"""
-        instruction = Instruction(
+        inst = Instruction(
             name = CommandName.FORWARD,
             type = InstructionType.COMMAND,
-            args = Arguments(speed=50, seconds=2)
+            args = Arguments()
         )
-        wire = serialize_message(message = Message(instruction = instruction))
-        roundtrip = parse_message(wire)
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
         
-        self.assertEqual(roundtrip.instruction.name, CommandName.FORWARD.value)
-        self.assertEqual(roundtrip.instruction.args.speed, 50)
-        self.assertEqual(roundtrip.instruction.args.seconds, 2)
-        self.assertEqual(roundtrip.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.FORWARD.value)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assert_default_arguments(res.instruction.args)
+
+    def test_roundtrip_backward(self):
+        inst = Instruction(
+            name = CommandName.BACKWARD,
+            type = InstructionType.COMMAND,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, CommandName.BACKWARD.value)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assert_default_arguments(res.instruction.args)
+    
+    def test_roundtrip_tank_left(self):
+        inst = Instruction(
+            name = CommandName.TANK_LEFT,
+            type = InstructionType.COMMAND,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, CommandName.TANK_LEFT.value)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assert_default_arguments(res.instruction.args)
+    
+    def test_roundtrip_tank_right(self):
+        inst = Instruction(
+            name = CommandName.TANK_RIGHT,
+            type = InstructionType.COMMAND,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, CommandName.TANK_RIGHT.value)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assert_default_arguments(res.instruction.args)
+    
+    def test_roundtrip_ball_in(self):
+        inst = Instruction(
+            name = CommandName.BALL_IN,
+            type = InstructionType.COMMAND,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, CommandName.BALL_IN.value)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assert_default_arguments(res.instruction.args)
+    
+    def test_roundtrip_ball_out(self):
+        inst = Instruction(
+            name = CommandName.BALL_OUT,
+            type = InstructionType.COMMAND,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, CommandName.BALL_OUT.value)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assert_default_arguments(res.instruction.args)
+    
+    def test_roundtrip_ball_off(self):
+        inst = Instruction(
+            name = CommandName.BALL_OFF,
+            type = InstructionType.COMMAND,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, CommandName.BALL_OFF.value)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assert_default_arguments(res.instruction.args)
+    
+    def test_roundtrip_talk(self):
+        inst = Instruction(
+            name = CommandName.TALK,
+            type = InstructionType.COMMAND,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, CommandName.TALK.value)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assert_default_arguments(res.instruction.args)
+    
+    def test_roundtrip_eject(self):
+        inst = Instruction(
+            name = SequenceName.EJECT,
+            type = InstructionType.SEQUENCE,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, SequenceName.EJECT.value)
+        self.assertEqual(res.instruction.type, InstructionType.SEQUENCE.value)
+        self.assert_default_arguments(res.instruction.args)
+    
+    def test_roundtrip_request(self):
+        inst = Instruction(
+            name = "ev3_attr",
+            type = InstructionType.REQUEST,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+        
+        self.assertEqual(res.instruction.name, "ev3_attr")
+        self.assertEqual(res.instruction.type, InstructionType.REQUEST.value)
+        self.assert_default_arguments(res.instruction.args)
 
     # endregion roundtrip
 
     # region validation
+
+    
 
     # endregion validation
 

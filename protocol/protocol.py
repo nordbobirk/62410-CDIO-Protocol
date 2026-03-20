@@ -59,7 +59,7 @@ class Arguments(object):
 
 class Instruction(object):
     def __init__(self, name, type, args=None):
-        self.name = name.value if isinstance(name, CommandName) else name
+        self.name = name.value if isinstance(name, CommandName) or isinstance(name, SequenceName) else name
         self.type = type.value if isinstance(type, InstructionType) else type
         self.args = args or Arguments()
         self.assert_valid()
