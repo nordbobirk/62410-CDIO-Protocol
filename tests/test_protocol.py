@@ -1,6 +1,6 @@
 """
 PENIS unit tests
-Run: python -m unittest test_protocol.py -v
+Run: python -m unittest test_protocol.py
 """
 import unittest
 from protocol import (
@@ -23,7 +23,7 @@ class TestPENISProtocol(unittest.TestCase):
             rspeed=0,
             lspeed=0,
             speed=0,
-            rotations=float(0),
+            rotations=0.0,
             position=0,
             seconds=0,
             target_angle=360,
@@ -32,6 +32,7 @@ class TestPENISProtocol(unittest.TestCase):
             talk="yeet",
         )
         custom_serialized = serialize_arguments(custom_arguments)
+        self.assertEqual(custom_arguments.rspeed, 0)
         self.assertEqual(custom_serialized, "inst_id;0;0;0;0.0;0;0;360;False;True;yeet")
 
     def test_serialize_message(self):
