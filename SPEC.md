@@ -124,13 +124,13 @@ PENIS does not specify any arguments to be required; instead, default values for
 ## Acknowledgements
 Each message sent from the controller to the robot results in a corresponding acknowledgement being sent from the robot to the controller. The acknowledgement is either positive or negative. A positive acknowledgement has the following syntax:
 
-`ACK <data>\n`
+`ACK <data>`
 
 where `<data>` is a stringified JSON object containing the requests data if the instruction is a request, and otherwise a stringified empty JSON object.
 
 A negative acknowledgement has the following syntax:
 
-`NAK <data>\n`
+`NAK <data>`
 
 where `<data>` is a stringified empty JSON object, which is included to allow transmission of key-value data in negative acknowledgements in the future.
 
@@ -139,7 +139,7 @@ Semantically, a negative acknowledgement means that the robot does not understan
 ## Message syntax
 A message, which is an instance of communication from the controller to the robot, has the following syntax:
 
-`<instruction>\n`
+`<instruction>`
 
 where `<instruction>` is a full instruction, including the fully qualified (including prefix) instruction name and the arguments. An `<instruction>` has the following syntax:
 

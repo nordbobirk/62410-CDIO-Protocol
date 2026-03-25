@@ -116,7 +116,7 @@ def serialize_arguments(args):
 def serialize_message(message):
     """Serialize a PENIS message"""
     instruction = message.instruction
-    return "{}{}:{}\n".format(
+    return "{}{}:{}".format(
         instruction.type,
         instruction.name,
         serialize_arguments(instruction.args)
@@ -147,10 +147,7 @@ def parse_arguments(raw_parts):
 
 def parse_message(raw):
     """Parse a serialized PENIS message"""
-    if not raw.endswith('\n'):
-        raise ValueError("Message must end with newline")
-    
-    line = raw.rstrip('\n')
+    line = raw
     if ':' not in line:
         raise ValueError("Missing ':' after instruction name")
     
@@ -169,14 +166,12 @@ def parse_message(raw):
 def serialize_ack(ack):
     """Serialize an acknowledgement"""
     data_str = json.dumps(ack.data)
-    return "{} {}\n".format(ack.status, data_str)
+    return "{} {}".format(ack.status, data_str)
 
 def parse_ack(raw):
     """Parse a serialized acknowledgement"""
-    if not raw.endswith('\n'):
-        raise ValueError("ACK must end with newline")
     
-    parts = raw.rstrip('\n').split(' ', 1)
+    parts = raw.split(' ', 1)
     status = parts[0]
     
     if status not in ("ACK", "NAK"):

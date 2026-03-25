@@ -53,24 +53,24 @@ class TestPENISProtocol(unittest.TestCase):
     def test_serialize_message(self):
         message = Message(instruction = Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()))
         serialized = serialize_message(message)
-        self.assertEqual(serialized, "c_fwd:;20;20;20;5.0;10;1;0;True;False;\n")
+        self.assertEqual(serialized, "c_fwd:;20;20;20;5.0;10;1;0;True;False;")
 
     def test_serialize_ack(self):
         ack = Acknowledgement("ACK", { "key": "value" })
         serialized_ack = serialize_ack(ack)
-        self.assertEqual(serialized_ack, "ACK {\"key\": \"value\"}\n")
+        self.assertEqual(serialized_ack, "ACK {\"key\": \"value\"}")
 
         nak = Acknowledgement("NAK", { "key": "value"} )
         serialized_nak = serialize_ack(nak)
-        self.assertEqual(serialized_nak, "NAK {\"key\": \"value\"}\n")
+        self.assertEqual(serialized_nak, "NAK {\"key\": \"value\"}")
 
         ack_no_data = Acknowledgement("ACK")
         serialized_ack_no_data = serialize_ack(ack_no_data)
-        self.assertEqual(serialized_ack_no_data, "ACK {}\n")
+        self.assertEqual(serialized_ack_no_data, "ACK {}")
 
         nak_no_data = Acknowledgement("NAK")
         serialized_nak_no_data = serialize_ack(nak_no_data)
-        self.assertEqual(serialized_nak_no_data, "NAK {}\n")
+        self.assertEqual(serialized_nak_no_data, "NAK {}")
 
     # endregion serialization
 
@@ -99,7 +99,7 @@ class TestPENISProtocol(unittest.TestCase):
         self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0;360;False;True;yeet")
     
     def test_parse_message(self):
-        serialized_message = "c_fwd:;20;20;20;5.0;10;1;0;True;False;\n"
+        serialized_message = "c_fwd:;20;20;20;5.0;10;1;0;True;False;"
         message = parse_message(serialized_message)
         instruction = message.instruction
         arguments = instruction.args
@@ -108,25 +108,25 @@ class TestPENISProtocol(unittest.TestCase):
         self.assert_default_arguments(arguments)
     
     def test_parse_acknowledgement(self):
-        serialized_ack = "ACK {\"key\": \"value\"}\n"
+        serialized_ack = "ACK {\"key\": \"value\"}"
         ack = parse_ack(serialized_ack)
         expected = Acknowledgement("ACK", { "key": "value" })
         self.assertEqual(ack.status, expected.status)
         self.assertEqual(ack.data, expected.data)
 
-        serialized_nak = "NAK {\"key\": \"value\"}\n"
+        serialized_nak = "NAK {\"key\": \"value\"}"
         nak = parse_ack(serialized_nak)
         expected = Acknowledgement("NAK", { "key": "value"} )
         self.assertEqual(nak.status, expected.status)
         self.assertEqual(nak.data, expected.data)
 
-        serialized_ack_no_data = "ACK {}\n"
+        serialized_ack_no_data = "ACK {}"
         ack_no_data = parse_ack(serialized_ack_no_data)
         expected = Acknowledgement("ACK")
         self.assertEqual(ack_no_data.status, expected.status)
         self.assertEqual(ack_no_data.data, expected.data)
 
-        serialized_nak_no_data = "NAK {}\n"
+        serialized_nak_no_data = "NAK {}"
         nak_no_data = parse_ack(serialized_nak_no_data)
         expected = Acknowledgement("NAK")
         self.assertEqual(nak_no_data.status, expected.status)
