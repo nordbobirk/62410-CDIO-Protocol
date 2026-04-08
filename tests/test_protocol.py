@@ -248,6 +248,20 @@ class TestPENISProtocol(unittest.TestCase):
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
     
+    def test_roundtrip_panic(self):
+        inst = Instruction(
+            name = CommandName.PANIC,
+            type = InstructionType.COMMAND,
+            args = Arguments()
+        )
+        msg = Message(instruction = inst)
+        smsg = serialize_message(message = msg)
+        res = parse_message(smsg)
+
+        self.assertEqual(res.instruction.name, CommandName.PANIC)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
+        self.assert_default_arguments(res.instruction.args)
+
     def test_roundtrip_eject(self):
         inst = Instruction(
             name = SequenceName.EJECT,

@@ -88,6 +88,7 @@ Commands are atomic units of work to be carried out by the robot. PENIS includes
     - `block`
 - talk (`t`): instructs the robot to talk according to the given arguments. This command accepts the following arguments (others are ignored): 
     - `talk`
+- panic (`panic`): stop whatever instruction the robot is doing
 
 #### Note
 The precedence of the arguments with the same usage (mainly rotations, positions, seconds & left, right speed) is equal to the order above. For example, if `speed` is provided the gyro functionality will be used, otherwise the regular tank turning will be used with the `lspeed` & `rspeed`. If multiple arguments are given, the argument with the highest precedence is used, and the rest are ignored.

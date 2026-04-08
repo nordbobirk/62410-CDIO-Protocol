@@ -19,6 +19,7 @@ class CommandName(Enum):
     BALL_OUT = "bout"
     BALL_OFF = "boff"
     TALK = "t"
+    PANIC = "panic"
 
 class SequenceName(Enum):
     EJECT = "bust"
