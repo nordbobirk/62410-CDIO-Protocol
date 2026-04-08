@@ -103,8 +103,8 @@ class TestPENISProtocol(unittest.TestCase):
         message = parse_message(serialized_message)
         instruction = message.instruction
         arguments = instruction.args
-        self.assertEqual(instruction.name, CommandName.FORWARD.value)
-        self.assertEqual(instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(instruction.name, CommandName.FORWARD)
+        self.assertEqual(instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(arguments)
     
     def test_parse_acknowledgement(self):
@@ -146,8 +146,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, CommandName.FORWARD.value)
-        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.FORWARD)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
 
     def test_roundtrip_backward(self):
@@ -160,8 +160,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, CommandName.BACKWARD.value)
-        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.BACKWARD)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
     
     def test_roundtrip_tank_left(self):
@@ -174,8 +174,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, CommandName.TANK_LEFT.value)
-        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.TANK_LEFT)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
     
     def test_roundtrip_tank_right(self):
@@ -188,8 +188,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, CommandName.TANK_RIGHT.value)
-        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.TANK_RIGHT)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
     
     def test_roundtrip_ball_in(self):
@@ -202,8 +202,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, CommandName.BALL_IN.value)
-        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.BALL_IN)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
     
     def test_roundtrip_ball_out(self):
@@ -216,8 +216,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, CommandName.BALL_OUT.value)
-        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.BALL_OUT)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
     
     def test_roundtrip_ball_off(self):
@@ -230,8 +230,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, CommandName.BALL_OFF.value)
-        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.BALL_OFF)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
     
     def test_roundtrip_talk(self):
@@ -244,8 +244,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, CommandName.TALK.value)
-        self.assertEqual(res.instruction.type, InstructionType.COMMAND.value)
+        self.assertEqual(res.instruction.name, CommandName.TALK)
+        self.assertEqual(res.instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(res.instruction.args)
     
     def test_roundtrip_eject(self):
@@ -258,8 +258,8 @@ class TestPENISProtocol(unittest.TestCase):
         smsg = serialize_message(message = msg)
         res = parse_message(smsg)
         
-        self.assertEqual(res.instruction.name, SequenceName.EJECT.value)
-        self.assertEqual(res.instruction.type, InstructionType.SEQUENCE.value)
+        self.assertEqual(res.instruction.name, SequenceName.EJECT)
+        self.assertEqual(res.instruction.type, InstructionType.SEQUENCE)
         self.assert_default_arguments(res.instruction.args)
     
     def test_roundtrip_request(self):
@@ -273,7 +273,7 @@ class TestPENISProtocol(unittest.TestCase):
         res = parse_message(smsg)
         
         self.assertEqual(res.instruction.name, "ev3_attr")
-        self.assertEqual(res.instruction.type, InstructionType.REQUEST.value)
+        self.assertEqual(res.instruction.type, InstructionType.REQUEST)
         self.assert_default_arguments(res.instruction.args)
 
     # endregion roundtrip
@@ -331,23 +331,23 @@ class TestPENISProtocol(unittest.TestCase):
     def test_instruction_validation(self):
         with self.assertRaises(ValueError) as ctx:
             Instruction(name = CommandName.FORWARD, type = "unknown-type", args = Arguments())
-        self.assertTrue("Unknown instruction type unknown-type" in str(ctx.exception))
+        self.assertTrue("Instruction type must be an InstructionType member, got unknown-type." in str(ctx.exception))
         Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()) # happy path
 
         with self.assertRaises(ValueError) as ctx:
             Instruction(name = "unknown-command", type = InstructionType.COMMAND, args = Arguments())
-        self.assertTrue("Unknown command name unknown-command" in str(ctx.exception))
+        self.assertTrue("Command instruction name must be a CommandName member, got unknown-command." in str(ctx.exception))
         with self.assertRaises(ValueError) as ctx:
             Instruction(name = SequenceName.EJECT, type = InstructionType.COMMAND, args = Arguments())
-        self.assertTrue("Unknown command name bust" in str(ctx.exception))
+        self.assertTrue("Command instruction name must be a CommandName member, got SequenceName.EJECT" in str(ctx.exception))
         Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()) # happy path
 
         with self.assertRaises(ValueError) as ctx:
             Instruction(name = "unknown-sequence", type = InstructionType.SEQUENCE, args = Arguments())
-        self.assertTrue("Unknown sequence name unknown-sequence" in str(ctx.exception))
+        self.assertTrue("Sequence instruction name must be a SequenceName member, got unknown-sequence" in str(ctx.exception))
         with self.assertRaises(ValueError) as ctx:
             Instruction(name = CommandName.FORWARD, type = InstructionType.SEQUENCE, args = Arguments())
-        self.assertTrue("Unknown sequence name fwd" in str(ctx.exception))
+        self.assertTrue("Sequence instruction name must be a SequenceName member, got CommandName.FORWARD" in str(ctx.exception))
         Instruction(name = SequenceName.EJECT, type = InstructionType.SEQUENCE, args = Arguments()) # happy path
 
         with self.assertRaises(ValueError) as ctx:

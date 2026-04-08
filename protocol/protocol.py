@@ -72,21 +72,45 @@ class Arguments(object):
 
 class Instruction(object):
     def __init__(self, name, type, args=None):
-        self.name = name.value if isinstance(name, CommandName) or isinstance(name, SequenceName) else name
-        self.type = type.value if isinstance(type, InstructionType) else type
+        if not isinstance(type, InstructionType):
+            raise ValueError("Instruction type must be an InstructionType member, got {}.".format(type))
+
+        self.type = type
         self.args = args or Arguments()
+
+        if self.type == InstructionType.COMMAND:
+            if not isinstance(name, CommandName):
+                raise ValueError("Command instruction name must be a CommandName member, got {}.".format(name))
+            self.name = name
+
+        elif self.type == InstructionType.SEQUENCE:
+            if not isinstance(name, SequenceName):
+                raise ValueError("Sequence instruction name must be a SequenceName member, got {}.".format(name))
+            self.name = name
+
+        elif self.type == InstructionType.REQUEST:
+            if not isinstance(name, str):
+                raise ValueError("Request instruction name must be a string, got {}.".format(name))
+            self.name = name
+
+        else:
+            raise ValueError("Unknown instruction type {}.".format(self.type))
+
         self.assert_valid()
 
     def assert_valid(self):
-        if self.type not in InstructionType and not isinstance(self.type, InstructionType):
+        if not isinstance(self.type, InstructionType):
             raise ValueError("Unknown instruction type {}.".format(self.type))
-        if self.type == InstructionType.COMMAND.value:
-            if self.name not in CommandName:
+
+        if self.type == InstructionType.COMMAND:
+            if not isinstance(self.name, CommandName):
                 raise ValueError("Unknown command name {}.".format(self.name))
-        if self.type == InstructionType.SEQUENCE.value:
-            if self.name not in SequenceName:
+
+        elif self.type == InstructionType.SEQUENCE:
+            if not isinstance(self.name, SequenceName):
                 raise ValueError("Unknown sequence name {}.".format(self.name))
-        if self.type == InstructionType.REQUEST.value:
+
+        elif self.type == InstructionType.REQUEST:
             if "ev3_" not in self.name:
                 raise ValueError("Unknown request name {}, missing prefix.".format(self.name))
 
@@ -116,9 +140,10 @@ def serialize_arguments(args):
 def serialize_message(message):
     """Serialize a PENIS message"""
     instruction = message.instruction
+    name = instruction.name.value if isinstance(instruction.name, Enum) else instruction.name
     return "{}{}:{}".format(
-        instruction.type,
-        instruction.name,
+        instruction.type.value,
+        name,
         serialize_arguments(instruction.args)
     )
 
@@ -150,18 +175,40 @@ def parse_message(raw):
     line = raw
     if ':' not in line:
         raise ValueError("Missing ':' after instruction name")
-    
+
     type_name, args_str = line.split(':', 1)
     arg_parts = args_str.split(';')
-    
+
     prefix = type_name[:2]
-    name = type_name[2:]
-    
+    raw_name = type_name[2:]
+
     args = parse_arguments(arg_parts)
-    
-    instruction_type = next(t for t in InstructionType if t.value == prefix)
-    instruction = Instruction(name = name, type = instruction_type, args = args)
-    return Message(instruction = instruction)
+
+    try:
+        instruction_type = InstructionType(prefix)
+    except ValueError:
+        raise ValueError("Unknown instruction type {}.".format(prefix))
+
+    if instruction_type == InstructionType.COMMAND:
+        try:
+            name = CommandName(raw_name)
+        except ValueError:
+            raise ValueError("Unknown command name {}.".format(raw_name))
+
+    elif instruction_type == InstructionType.SEQUENCE:
+        try:
+            name = SequenceName(raw_name)
+        except ValueError:
+            raise ValueError("Unknown sequence name {}.".format(raw_name))
+
+    elif instruction_type == InstructionType.REQUEST:
+        name = raw_name
+
+    else:
+        raise ValueError("Unknown instruction type {}.".format(prefix))
+
+    instruction = Instruction(name=name, type=instruction_type, args=args)
+    return Message(instruction=instruction)
 
 def serialize_ack(ack):
     """Serialize an acknowledgement"""
