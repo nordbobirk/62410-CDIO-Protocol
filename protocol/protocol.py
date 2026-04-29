@@ -24,6 +24,13 @@ class CommandName(Enum):
 class SequenceName(Enum):
     EJECT = "bust"
 
+class RequestName(Enum):
+    SPEED = "speed"
+    ISRUNNING = "isRunning"
+    ISHOLDING = "isHolding"
+    ISRAMPING = "isRamping"
+    ISOVERLOADED = "isOverloaded"
+
 TALK_REGEX = re.compile(r"^[a-zA-Z0-9\.\,\ ]*$")
 
 FIELD_ORDER = [
@@ -48,7 +55,7 @@ class Arguments(object):
         self.speed = int(speed if speed is not None else DEFAULTS["speed"])
         self.rotations = float(rotations if rotations is not None else DEFAULTS["rotations"])
         self.position = int(position if position is not None else DEFAULTS["position"])
-        self.seconds = int(seconds if seconds is not None else DEFAULTS["seconds"])
+        self.seconds = float(seconds if seconds is not None else DEFAULTS["seconds"])
         self.target_angle = int(target_angle if target_angle is not None else DEFAULTS["target_angle"])
         self.brake = bool(brake) if brake is not None else DEFAULTS["brake"]
         self.block = bool(block) if block is not None else DEFAULTS["block"]

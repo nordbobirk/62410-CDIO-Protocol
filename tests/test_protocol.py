@@ -7,7 +7,7 @@ from protocol import (
     CommandName, Instruction, Arguments, InstructionType,
     serialize_message, parse_message, serialize_arguments,
     Message, Acknowledgement, serialize_ack, parse_ack,
-    parse_arguments, SequenceName
+    parse_arguments, SequenceName, RequestName
 )
 
 class TestPENISProtocol(unittest.TestCase):
@@ -382,6 +382,95 @@ class TestPENISProtocol(unittest.TestCase):
         Acknowledgement(status = "ACK", data = { "key": "value" }) # happy path
 
     # endregion validation
+
+#region requests
+def test_roundtrip_request_speed(self):
+    inst = Instruction(
+        name = RequestName.SPEED.value,
+        type = InstructionType.REQUEST,
+        args = Arguments()
+    )
+    msg = Message(instruction = inst)
+    smsg = serialize_message(message = msg)
+    res = parse_message(smsg)
+
+    self.assertEqual(res.instruction.name, RequestName.SPEED.value)
+    self.assertEqual(res.instruction.type, InstructionType.REQUEST)
+    self.assert_default_arguments(res.instruction.args)
+
+
+def test_roundtrip_request_isrunning(self):
+    inst = Instruction(
+        name = RequestName.ISRUNNING.value,
+        type = InstructionType.REQUEST,
+        args = Arguments()
+    )
+    msg = Message(instruction = inst)
+    smsg = serialize_message(message = msg)
+    res = parse_message(smsg)
+
+    self.assertEqual(res.instruction.name, RequestName.ISRUNNING.value)
+    self.assertEqual(res.instruction.type, InstructionType.REQUEST)
+    self.assert_default_arguments(res.instruction.args)
+
+
+def test_roundtrip_request_isholding(self):
+    inst = Instruction(
+        name = RequestName.ISHOLDING.value,
+        type = InstructionType.REQUEST,
+        args = Arguments()
+    )
+    msg = Message(instruction = inst)
+    smsg = serialize_message(message = msg)
+    res = parse_message(smsg)
+
+    self.assertEqual(res.instruction.name, RequestName.ISHOLDING.value)
+    self.assertEqual(res.instruction.type, InstructionType.REQUEST)
+    self.assert_default_arguments(res.instruction.args)
+
+
+def test_roundtrip_request_isramping(self):
+    inst = Instruction(
+        name = RequestName.ISRAMPING.value,
+        type = InstructionType.REQUEST,
+        args = Arguments()
+    )
+    msg = Message(instruction = inst)
+    smsg = serialize_message(message = msg)
+    res = parse_message(smsg)
+
+    self.assertEqual(res.instruction.name, RequestName.ISRAMPING.value)
+    self.assertEqual(res.instruction.type, InstructionType.REQUEST)
+    self.assert_default_arguments(res.instruction.args)
+
+
+def test_roundtrip_request_isoverloaded(self):
+    inst = Instruction(
+        name = RequestName.ISOVERLOADED.value,
+        type = InstructionType.REQUEST,
+        args = Arguments()
+    )
+    msg = Message(instruction = inst)
+    smsg = serialize_message(message = msg)
+    res = parse_message(smsg)
+
+    self.assertEqual(res.instruction.name, RequestName.ISOVERLOADED.value)
+    self.assertEqual(res.instruction.type, InstructionType.REQUEST)
+    self.assert_default_arguments(res.instruction.args)
+
+def test_request_name_enum_values(self):
+    self.assertEqual(RequestName.SPEED.value, "speed")
+    self.assertEqual(RequestName.ISRUNNING.value, "isRunning")
+    self.assertEqual(RequestName.ISHOLDING.value, "isHolding")
+    self.assertEqual(RequestName.ISRAMPING.value, "isRamping")
+    self.assertEqual(RequestName.ISOVERLOADED.value, "isOverloaded")
+
+def test_instruction_validation_request_enum_names(self):
+    with self.assertRaises(ValueError) as ctx:
+        Instruction(name = RequestName.SPEED.value, type = InstructionType.REQUEST, args = Arguments())
+    self.assertTrue("Unknown request name speed, missing prefix." in str(ctx.exception))
+#endregion requests
+
 
 if __name__ == '__main__':
     unittest.main()
