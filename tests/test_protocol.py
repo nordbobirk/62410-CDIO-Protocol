@@ -31,7 +31,7 @@ class TestPENISProtocol(unittest.TestCase):
     def test_serialize_arguments(self):
         arguments = Arguments()
         serialized = serialize_arguments(arguments)
-        self.assertEqual(serialized, ";20;20;20;5.0;10;1;0;True;False;")
+        self.assertEqual(serialized, ";20;20;20;5.0;10;1.0;0;True;False;")
 
         custom_arguments = Arguments(
             inst_id="",
@@ -48,12 +48,12 @@ class TestPENISProtocol(unittest.TestCase):
         )
         custom_serialized = serialize_arguments(custom_arguments)
         self.assertEqual(custom_arguments.rspeed, 0)
-        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0;360;False;True;yeet")
+        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0.0;360;False;True;yeet")
 
     def test_serialize_message(self):
         message = Message(instruction = Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()))
         serialized = serialize_message(message)
-        self.assertEqual(serialized, "c_fwd:;20;20;20;5.0;10;1;0;True;False;")
+        self.assertEqual(serialized, "c_fwd:;20;20;20;5.0;10;1.0;0;True;False;")
 
     def test_serialize_ack(self):
         ack = Acknowledgement("ACK", { "key": "value" })
@@ -96,7 +96,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         custom_serialized = serialize_arguments(custom_arguments)
         self.assertEqual(custom_arguments.rspeed, 0)
-        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0;360;False;True;yeet")
+        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0.0;360;False;True;yeet")
     
     def test_parse_message(self):
         serialized_message = "c_fwd:;20;20;20;5.0;10;1;0;True;False;"
