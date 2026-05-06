@@ -149,7 +149,7 @@ def serialize_message(message):
     """Serialize a PENIS message"""
     instruction = message.instruction
     name = instruction.name.value if isinstance(instruction.name, Enum) else instruction.name
-    return "{}{}:{}".format(
+    return "{}{}:{}!".format(
         instruction.type.value,
         name,
         serialize_arguments(instruction.args)
@@ -180,7 +180,7 @@ def parse_arguments(raw_parts):
 
 def parse_message(raw):
     """Parse a serialized PENIS message"""
-    line = raw
+    line = raw.rstrip("!")
     if ':' not in line:
         raise ValueError("Missing ':' after instruction name")
 
@@ -221,12 +221,11 @@ def parse_message(raw):
 def serialize_ack(ack):
     """Serialize an acknowledgement"""
     data_str = json.dumps(ack.data)
-    return "{} {}".format(ack.status, data_str)
+    return "{} {}!".format(ack.status, data_str)
 
 def parse_ack(raw):
     """Parse a serialized acknowledgement"""
-    
-    parts = raw.split(' ', 1)
+    parts = raw.rstrip('!').split(' ', 1)
     status = parts[0]
     
     if status not in ("ACK", "NAK"):

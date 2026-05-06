@@ -140,10 +140,10 @@ Semantically, a negative acknowledgement means that the robot does not understan
 ## Message syntax
 A message, which is an instance of communication from the controller to the robot, has the following syntax:
 
-`<instruction>`
+`<instruction>!`
 
 where `<instruction>` is a full instruction, including the fully qualified (including prefix) instruction name and the arguments. An `<instruction>` has the following syntax:
 
 `<inst_name>:<inst_id>;<rspeed>;<lspeed>;<speed>;<rotations>;<position>;<seconds>;<target_angle>;<brake>;<block>;<talk>`
 
-The instruction name is separated from the arguments by `:`, and each argument is separated by `;`. There is no semicolon after the last argument to the instruction.
+The instruction name is separated from the arguments by `:`, and each argument is separated by `;`. There is no semicolon after the last argument to the instruction. A message ends with a `!` as a delimiter.
