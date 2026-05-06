@@ -179,44 +179,51 @@ def parse_arguments(raw_parts):
         raise ValueError("Failed to parse arguments: {}".format(e))
 
 def parse_message(raw):
-    """Parse a serialized PENIS message"""
-    line = raw.rstrip("!")
-    if ':' not in line:
-        raise ValueError("Missing ':' after instruction name")
+    """Parse one or more serialized PENIS messages from a TCP segment"""
+    messages = []
+    for segment in raw.split('!'):
+        segment = segment.strip()
+        if not segment:
+            continue
 
-    type_name, args_str = line.split(':', 1)
-    arg_parts = args_str.split(';')
+        if ':' not in segment:
+            raise ValueError("Missing ':' after instruction name in segment: {!r}".format(segment))
 
-    prefix = type_name[:2]
-    raw_name = type_name[2:]
+        type_name, args_str = segment.split(':', 1)
+        arg_parts = args_str.split(';')
 
-    args = parse_arguments(arg_parts)
+        prefix = type_name[:2]
+        raw_name = type_name[2:]
 
-    try:
-        instruction_type = InstructionType(prefix)
-    except ValueError:
-        raise ValueError("Unknown instruction type {}.".format(prefix))
+        args = parse_arguments(arg_parts)
 
-    if instruction_type == InstructionType.COMMAND:
         try:
-            name = CommandName(raw_name)
+            instruction_type = InstructionType(prefix)
         except ValueError:
-            raise ValueError("Unknown command name {}.".format(raw_name))
+            raise ValueError("Unknown instruction type {}.".format(prefix))
 
-    elif instruction_type == InstructionType.SEQUENCE:
-        try:
-            name = SequenceName(raw_name)
-        except ValueError:
-            raise ValueError("Unknown sequence name {}.".format(raw_name))
+        if instruction_type == InstructionType.COMMAND:
+            try:
+                name = CommandName(raw_name)
+            except ValueError:
+                raise ValueError("Unknown command name {}.".format(raw_name))
 
-    elif instruction_type == InstructionType.REQUEST:
-        name = raw_name
+        elif instruction_type == InstructionType.SEQUENCE:
+            try:
+                name = SequenceName(raw_name)
+            except ValueError:
+                raise ValueError("Unknown sequence name {}.".format(raw_name))
 
-    else:
-        raise ValueError("Unknown instruction type {}.".format(prefix))
+        elif instruction_type == InstructionType.REQUEST:
+            name = raw_name
 
-    instruction = Instruction(name=name, type=instruction_type, args=args)
-    return Message(instruction=instruction)
+        else:
+            raise ValueError("Unknown instruction type {}.".format(prefix))
+
+        instruction = Instruction(name=name, type=instruction_type, args=args)
+        messages.append(Message(instruction=instruction))
+
+    return messages
 
 def serialize_ack(ack):
     """Serialize an acknowledgement"""
@@ -224,18 +231,26 @@ def serialize_ack(ack):
     return "{} {}!".format(ack.status, data_str)
 
 def parse_ack(raw):
-    """Parse a serialized acknowledgement"""
-    parts = raw.rstrip('!').split(' ', 1)
-    status = parts[0]
-    
-    if status not in ("ACK", "NAK"):
-        raise ValueError("Unknown status {}, expected 'ACK' or 'NAK'.".format(status))
-    
-    data = {}
-    if len(parts) > 1:
-        try:
-            data = json.loads(parts[1])
-        except ValueError:
-            raise ValueError("Invalid JSON in ACK data")
-    
-    return Acknowledgement(status=status, data=data)
+    """Parse one or more serialized acknowledgements from a TCP segment"""
+    acks = []
+    for segment in raw.split('!'):
+        segment = segment.strip()
+        if not segment:
+            continue
+
+        parts = segment.split(' ', 1)
+        status = parts[0]
+
+        if status not in ("ACK", "NAK"):
+            raise ValueError("Unknown status {}, expected 'ACK' or 'NAK'.".format(status))
+
+        data = {}
+        if len(parts) > 1:
+            try:
+                data = json.loads(parts[1])
+            except ValueError:
+                raise ValueError("Invalid JSON in ACK data")
+
+        acks.append(Acknowledgement(status=status, data=data))
+
+    return acks

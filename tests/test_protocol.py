@@ -53,7 +53,7 @@ class TestPENISProtocol(unittest.TestCase):
     def test_serialize_message(self):
         message = Message(instruction = Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()))
         serialized = serialize_message(message)
-        self.assertEqual(serialized, "c_fwd:;20;20;20;5.0;10;1;0;True;False;!")
+        self.assertEqual(serialized, "c_fwd:;20;20;20;5.0;10;1.0;0;True;False;!")
 
     def test_serialize_ack(self):
         ack = Acknowledgement("ACK", { "key": "value" })
@@ -101,36 +101,75 @@ class TestPENISProtocol(unittest.TestCase):
     def test_parse_message(self):
         serialized_message = "c_fwd:;20;20;20;5.0;10;1;0;True;False;!"
         message = parse_message(serialized_message)
-        instruction = message.instruction
+        instruction = message[0].instruction
         arguments = instruction.args
         self.assertEqual(instruction.name, CommandName.FORWARD)
         self.assertEqual(instruction.type, InstructionType.COMMAND)
         self.assert_default_arguments(arguments)
+
+    def test_parse_two_messages(self):
+        serialized_messages = "c_fwd:;20;20;20;5.0;10;1;0;True;False;!c_fwd:;20;20;20;5.0;10;1;0;True;False;!"
+        messages = parse_message(serialized_messages)
+        for message in messages:
+            instruction = message.instruction
+            arguments = instruction.args
+            self.assertEqual(instruction.name, CommandName.FORWARD)
+            self.assertEqual(instruction.type, InstructionType.COMMAND)
+            self.assert_default_arguments(arguments)
     
     def test_parse_acknowledgement(self):
         serialized_ack = "ACK {\"key\": \"value\"}!"
-        ack = parse_ack(serialized_ack)
+        ack = parse_ack(serialized_ack)[0]
         expected = Acknowledgement("ACK", { "key": "value" })
         self.assertEqual(ack.status, expected.status)
         self.assertEqual(ack.data, expected.data)
 
         serialized_nak = "NAK {\"key\": \"value\"}!"
-        nak = parse_ack(serialized_nak)
+        nak = parse_ack(serialized_nak)[0]
         expected = Acknowledgement("NAK", { "key": "value"} )
         self.assertEqual(nak.status, expected.status)
         self.assertEqual(nak.data, expected.data)
 
-        serialized_ack_no_data = "ACK {}"
-        ack_no_data = parse_ack(serialized_ack_no_data)
+        serialized_ack_no_data = "ACK {}!"
+        ack_no_data = parse_ack(serialized_ack_no_data)[0]
         expected = Acknowledgement("ACK")
         self.assertEqual(ack_no_data.status, expected.status)
         self.assertEqual(ack_no_data.data, expected.data)
 
-        serialized_nak_no_data = "NAK {}"
-        nak_no_data = parse_ack(serialized_nak_no_data)
+        serialized_nak_no_data = "NAK {}!"
+        nak_no_data = parse_ack(serialized_nak_no_data)[0]
         expected = Acknowledgement("NAK")
         self.assertEqual(nak_no_data.status, expected.status)
         self.assertEqual(nak_no_data.data, expected.data)
+
+    def test_parse_two_acks(self):
+        serialized_acks = "ACK {\"key\": \"value\"}!ACK {\"key\": \"value\"}!"
+        acks = parse_ack(serialized_acks)
+        expected = Acknowledgement("ACK", { "key": "value" })
+        for ack in acks:
+            self.assertEqual(ack.status, expected.status)
+            self.assertEqual(ack.data, expected.data)
+
+        serialized_naks = "NAK {\"key\": \"value\"}!NAK {\"key\": \"value\"}!"
+        naks = parse_ack(serialized_naks)
+        expected = Acknowledgement("NAK", { "key": "value"} )
+        for nak in naks:
+            self.assertEqual(nak.status, expected.status)
+            self.assertEqual(nak.data, expected.data)
+
+        serialized_acks_no_data = "ACK {}!ACK {}!"
+        acks_no_data = parse_ack(serialized_acks_no_data)
+        expected = Acknowledgement("ACK")
+        for ack_no_data in acks_no_data:
+            self.assertEqual(ack_no_data.status, expected.status)
+            self.assertEqual(ack_no_data.data, expected.data)
+
+        serialized_naks_no_data = "NAK {}!NAK {}!"
+        naks_no_data = parse_ack(serialized_naks_no_data)
+        expected = Acknowledgement("NAK")
+        for nak_no_data in naks_no_data:
+            self.assertEqual(nak_no_data.status, expected.status)
+            self.assertEqual(nak_no_data.data, expected.data)
 
     # endregion parsing
 
@@ -144,7 +183,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, CommandName.FORWARD)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -158,7 +197,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, CommandName.BACKWARD)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -172,7 +211,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, CommandName.TANK_LEFT)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -186,7 +225,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, CommandName.TANK_RIGHT)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -200,7 +239,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, CommandName.BALL_IN)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -214,7 +253,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, CommandName.BALL_OUT)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -228,7 +267,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, CommandName.BALL_OFF)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -242,7 +281,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, CommandName.TALK)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -256,7 +295,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
 
         self.assertEqual(res.instruction.name, CommandName.PANIC)
         self.assertEqual(res.instruction.type, InstructionType.COMMAND)
@@ -270,7 +309,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, SequenceName.EJECT)
         self.assertEqual(res.instruction.type, InstructionType.SEQUENCE)
@@ -284,7 +323,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         msg = Message(instruction = inst)
         smsg = serialize_message(message = msg)
-        res = parse_message(smsg)
+        res = parse_message(smsg)[0]
         
         self.assertEqual(res.instruction.name, "ev3_attr")
         self.assertEqual(res.instruction.type, InstructionType.REQUEST)
@@ -392,7 +431,7 @@ def test_roundtrip_request_speed(self):
     )
     msg = Message(instruction = inst)
     smsg = serialize_message(message = msg)
-    res = parse_message(smsg)
+    res = parse_message(smsg)[0]
 
     self.assertEqual(res.instruction.name, RequestName.SPEED.value)
     self.assertEqual(res.instruction.type, InstructionType.REQUEST)
@@ -407,7 +446,7 @@ def test_roundtrip_request_isrunning(self):
     )
     msg = Message(instruction = inst)
     smsg = serialize_message(message = msg)
-    res = parse_message(smsg)
+    res = parse_message(smsg)[0]
 
     self.assertEqual(res.instruction.name, RequestName.ISRUNNING.value)
     self.assertEqual(res.instruction.type, InstructionType.REQUEST)
@@ -422,7 +461,7 @@ def test_roundtrip_request_isholding(self):
     )
     msg = Message(instruction = inst)
     smsg = serialize_message(message = msg)
-    res = parse_message(smsg)
+    res = parse_message(smsg)[0]
 
     self.assertEqual(res.instruction.name, RequestName.ISHOLDING.value)
     self.assertEqual(res.instruction.type, InstructionType.REQUEST)
@@ -437,7 +476,7 @@ def test_roundtrip_request_isramping(self):
     )
     msg = Message(instruction = inst)
     smsg = serialize_message(message = msg)
-    res = parse_message(smsg)
+    res = parse_message(smsg)[0]
 
     self.assertEqual(res.instruction.name, RequestName.ISRAMPING.value)
     self.assertEqual(res.instruction.type, InstructionType.REQUEST)
@@ -452,7 +491,7 @@ def test_roundtrip_request_isoverloaded(self):
     )
     msg = Message(instruction = inst)
     smsg = serialize_message(message = msg)
-    res = parse_message(smsg)
+    res = parse_message(smsg)[0]
 
     self.assertEqual(res.instruction.name, RequestName.ISOVERLOADED.value)
     self.assertEqual(res.instruction.type, InstructionType.REQUEST)
