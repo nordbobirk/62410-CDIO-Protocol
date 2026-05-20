@@ -35,13 +35,13 @@ TALK_REGEX = re.compile(r"^[a-zA-Z0-9\.\,\ ]*$")
 
 FIELD_ORDER = [
     "inst_id", "rspeed", "lspeed", "speed", 
-    "rotations", "position", "seconds", "target_angle", 
+    "rotations", "position", "seconds", "target_angle",
     "brake", "block", "talk"
 ]
 
 DEFAULTS = {
     "inst_id": "", "rspeed": 20, "lspeed": 20, "speed": 20, 
-    "rotations": 5.0, "position": 10, "seconds": 1,
+    "rotations": 5.0, "position": 10, "seconds": 1.0,
     "target_angle": 0, "brake": True, "block": False, "talk": ""
 }
 
@@ -71,8 +71,8 @@ class Arguments(object):
             raise ValueError("Left speed must be within [-100;100], received {}.".format(self.lspeed))
         if self.speed > 100 or self.speed < -100:
             raise ValueError("Speed must be within [-100;100], received {}.".format(self.speed))
-        if self.seconds < 0:
-            raise ValueError("Seconds must be a non-negative integer, received {}".format(self.seconds))
+        if self.seconds <= 0:
+            raise ValueError("Seconds must be a positive float, received {}".format(self.seconds))
         if self.target_angle > 360 or self.target_angle < -360:
             raise ValueError("Target angle must be within [-360;360], received {}".format(self.target_angle))
         if TALK_REGEX.search(self.talk) == None and self.talk != "":

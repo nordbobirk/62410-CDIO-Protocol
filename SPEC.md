@@ -110,7 +110,7 @@ All [instructions](#instructions) accept so-called *arguments* as input. Every i
 4. Speed percent (`speed`): speed of both sets of wheels in percent of maximum possible speed. This is an integer in the range `[-100;100]`. Default: `20`.
 5. Rotations (`rotations`): rotations per minute of the wheels. This is a float. Default: `5`.
 6. Position (`position`): in short, position describes the current position of the motor in pulses of the rotary encoder. When the motor rotates clockwise, the position will increase. Likewise, rotating counter-clockwise causes the position to decrease. Default: `10`.
-7. Seconds (`seconds`): the amount of seconds for which to turn on some motor. This is a non-negative integer. Default: `1`.
+7. Seconds (`seconds`): the amount of seconds for which to turn on some motor. This is a positive float. Default: `1.0`.
 8. Target angle (`target_angle`): the target angle for a turn. Requires a gyro sensor for measuring the rotation on the plane of rotation of the gyro. This is a signed integer in the range `[-360; 360]`. Default: `0`.
 9. Brake (`brake`): whether or not to brake after moving (either `true` or `false`). Default: `true`.
 10. Block (`block`): whether or not the instruction should block (either `true` or `false`). If an instruction is blocking, then other instructions arriving during execution of the blocking instruction will be queued and carried out after execution of the blocking instruction completes. If an instruction is not blocking, then other instructions arriving during execution of the non-blocking instruction will interrupt and begin execution immediately. Default: `false`.

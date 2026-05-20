@@ -40,7 +40,7 @@ class TestPENISProtocol(unittest.TestCase):
             speed=0,
             rotations=0.0,
             position=0,
-            seconds=0,
+            seconds=1.0,
             target_angle=360,
             brake=False,
             block=True,
@@ -48,7 +48,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         custom_serialized = serialize_arguments(custom_arguments)
         self.assertEqual(custom_arguments.rspeed, 0)
-        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0.0;360;False;True;yeet")
+        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;1.0;360;False;True;yeet")
 
     def test_serialize_message(self):
         message = Message(instruction = Instruction(name = CommandName.FORWARD, type = InstructionType.COMMAND, args = Arguments()))
@@ -88,7 +88,7 @@ class TestPENISProtocol(unittest.TestCase):
             speed=0,
             rotations=0.0,
             position=0,
-            seconds=0,
+            seconds=1.0,
             target_angle=360,
             brake=False,
             block=True,
@@ -96,7 +96,7 @@ class TestPENISProtocol(unittest.TestCase):
         )
         custom_serialized = serialize_arguments(custom_arguments)
         self.assertEqual(custom_arguments.rspeed, 0)
-        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;0.0;360;False;True;yeet")
+        self.assertEqual(custom_serialized, ";0;0;0;0.0;0;1.0;360;False;True;yeet")
     
     def test_parse_message(self):
         serialized_message = "c_fwd:;20;20;20;5.0;10;1;0;True;False;!"
@@ -365,8 +365,11 @@ class TestPENISProtocol(unittest.TestCase):
 
         with self.assertRaises(ValueError) as ctx:
             Arguments(seconds = -1)
-        self.assertTrue("Seconds must be a non-negative integer, received -1" in str(ctx.exception))
-        Arguments(seconds = 0) # happy path
+        self.assertTrue("Seconds must be a positive float, received -1" in str(ctx.exception))
+        with self.assertRaises(ValueError) as ctx:
+            Arguments(seconds = 0.0)
+        self.assertTrue("Seconds must be a positive float, received 0.0" in str(ctx.exception))
+        Arguments(seconds = 1.0) # happy path
 
         with self.assertRaises(ValueError) as ctx:
             Arguments(target_angle = -361)
