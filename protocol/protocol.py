@@ -77,6 +77,17 @@ class Arguments(object):
             raise ValueError("Target angle must be within [-360;360], received {}".format(self.target_angle))
         if TALK_REGEX.search(self.talk) == None and self.talk != "":
             raise ValueError("Talk must only include alphanumeric characters as well as the dot, comma, and space characters.")
+    
+    def __repr__(self):
+        return (
+            "Arguments(inst_id={!r}, rspeed={!r}, lspeed={!r}, speed={!r}, "
+            "rotations={!r}, position={!r}, seconds={!r}, target_angle={!r}, "
+            "brake={!r}, block={!r}, talk={!r})"
+        ).format(
+            self.inst_id, self.rspeed, self.lspeed, self.speed,
+            self.rotations, self.position, self.seconds, self.target_angle,
+            self.brake, self.block, self.talk
+        )
 
 class Instruction(object):
     def __init__(self, name, type, args=None):
@@ -121,10 +132,18 @@ class Instruction(object):
         elif self.type == InstructionType.REQUEST:
             if "ev3_" not in self.name:
                 raise ValueError("Unknown request name {}, missing prefix.".format(self.name))
+            
+    def __repr__(self):
+        return "Instruction(type={!r}, name={!r}, args={!r})".format(
+            self.type, self.name, self.args
+        )
 
 class Message(object):
     def __init__(self, instruction):
         self.instruction = instruction
+
+    def __repr__(self):
+        return "Message(instruction={!r})".format(self.instruction)
 
 class Acknowledgement(object):
     def __init__(self, status, data = None):
@@ -139,6 +158,9 @@ class Acknowledgement(object):
             json.dumps(self.data)
         except:
             raise ValueError("Data must be valid JSON.")
+        
+    def __repr__(self):
+        return "Acknowledgement(status={!r}, data={!r})".format(self.status, self.data)
 
 def serialize_arguments(args):
     """Serialize a PENIS arguments instance"""
