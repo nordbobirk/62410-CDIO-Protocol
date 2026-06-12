@@ -79,12 +79,8 @@ class Arguments(object):
             raise ValueError("Talk must only include alphanumeric characters as well as the dot, comma, and space characters.")
     
     def __repr__(self):
-        return (
-            "Arguments(inst_id={!r}, rspeed={!r}, lspeed={!r}, speed={!r}, "
-            "rotations={!r}, position={!r}, seconds={!r}, target_angle={!r}, "
-            "brake={!r}, block={!r}, talk={!r})"
-        ).format(
-            self.inst_id, self.rspeed, self.lspeed, self.speed,
+        return "rs={} ls={} spd={} rot={} pos={} sec={} ang={} brk={} blk={} talk={!r}".format(
+            self.rspeed, self.lspeed, self.speed,
             self.rotations, self.position, self.seconds, self.target_angle,
             self.brake, self.block, self.talk
         )
@@ -134,16 +130,15 @@ class Instruction(object):
                 raise ValueError("Unknown request name {}, missing prefix.".format(self.name))
             
     def __repr__(self):
-        return "Instruction(type={!r}, name={!r}, args={!r})".format(
-            self.type, self.name, self.args
-        )
+        name = self.name.value if isinstance(self.name, Enum) else self.name
+        return "[{}{} {}]".format(self.type.value, name, self.args)
 
 class Message(object):
     def __init__(self, instruction):
         self.instruction = instruction
 
     def __repr__(self):
-        return "Message(instruction={!r})".format(self.instruction)
+        return repr(self.instruction)
 
 class Acknowledgement(object):
     def __init__(self, status, data = None):
@@ -160,7 +155,7 @@ class Acknowledgement(object):
             raise ValueError("Data must be valid JSON.")
         
     def __repr__(self):
-        return "Acknowledgement(status={!r}, data={!r})".format(self.status, self.data)
+        return "{} {}".format(self.status, self.data if self.data else "")
 
 def serialize_arguments(args):
     """Serialize a PENIS arguments instance"""
